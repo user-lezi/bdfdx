@@ -1,0 +1,35 @@
+{
+  "name": "bdfdx",
+  "version": "1.0.0",
+  "description": "BDFD sucks",
+  "keywords": [
+    "bdfd"
+  ],
+  "homepage": "https://github.com/user-lezi/bdfdx#readme",
+  "bugs": {
+    "url": "https://github.com/user-lezi/bdfdx/issues"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/user-lezi/bdfdx.git"
+  },
+  "license": "MIT",
+  "author": "lezii",
+  "type": "commonjs",
+  "main": "dist/index.js",
+  "scripts": {
+    "pretty": "prettier src -w",
+    "build": "tsc",
+    "test": "node ."
+  },
+  "dependencies": {
+    "@types/express": "^5.0.5",
+    "@types/node": "^24.10.1",
+    "chalk": "^4.1.2",
+    "discord.js": "^14.24.2",
+    "dotenv": "^17.2.3",
+    "express": "^5.1.0",
+    "prettier": "^3.6.2",
+    "typescript": "^5.9.3"
+  }
+}
