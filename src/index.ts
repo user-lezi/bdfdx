@@ -5,7 +5,7 @@ import { createApp } from "./app";
 
 // Create a client instance
 const client = new Client({
-  intents: ["Guilds"],
+  intents: ["Guilds", "GuildMembers", "GuildBans"],
 });
 
 // Once the client is ready, do bot details log and run the express code

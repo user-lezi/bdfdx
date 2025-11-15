@@ -9,7 +9,7 @@ const config_1 = require("./config");
 const app_1 = require("./app");
 // Create a client instance
 const client = new discord_js_1.Client({
-    intents: ["Guilds"],
+    intents: ["Guilds", "GuildMembers", "GuildBans"],
 });
 // Once the client is ready, do bot details log and run the express code
 client.once("clientReady", () => {
