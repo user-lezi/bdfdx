@@ -8,6 +8,9 @@ const os_1 = __importDefault(require("os"));
 exports.default = (0, apiRoute_1.createAPIRoute)({
     path: "/bot",
     methods: ["get"],
+    description: "Returns all the information about the bot.",
+    query: {},
+    body: {},
     async callback(ctx) {
         const client = ctx.client;
         const user = client.user;

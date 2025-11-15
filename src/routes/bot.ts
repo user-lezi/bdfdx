@@ -4,6 +4,11 @@ import os from "os";
 export default createAPIRoute({
   path: "/bot",
   methods: ["get"],
+
+  description: "Returns all the information about the bot.",
+  query: {},
+  body: {},
+
   async callback(ctx) {
     const client = ctx.client;
     const user = client.user;

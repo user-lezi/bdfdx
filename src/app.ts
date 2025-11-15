@@ -46,15 +46,6 @@ export async function createApp(
         chalk.yellow("Loaded route file: ") +
         chalk.cyan(file.replace(__dirname, "")),
     );
-    route.data.methods.forEach((method) =>
-      console.log(
-        "\t" +
-          chalk.gray("[") +
-          chalk.green(method.toUpperCase()) +
-          chalk.gray("] ") +
-          chalk.cyan(route.data.path),
-      ),
-    );
   }
 
   app.listen(config.port, () => {

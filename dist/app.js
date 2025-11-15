@@ -35,11 +35,6 @@ async function createApp(client, config) {
             chalk_1.default.gray("] ") +
             chalk_1.default.yellow("Loaded route file: ") +
             chalk_1.default.cyan(file.replace(__dirname, "")));
-        route.data.methods.forEach((method) => console.log("\t" +
-            chalk_1.default.gray("[") +
-            chalk_1.default.green(method.toUpperCase()) +
-            chalk_1.default.gray("] ") +
-            chalk_1.default.cyan(route.data.path)));
     }
     app.listen(config.port, () => {
         const bootTime = performance.now() - start;
