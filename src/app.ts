@@ -1,6 +1,8 @@
 import chalk from "chalk";
 import { Client } from "discord.js";
 import express from "express";
+import { recursiveReaddir } from "./utils";
+import { createAPIRoute } from "./apiRoute";
 
 export async function createApp(
   client: Client<true>,
@@ -27,6 +29,33 @@ export async function createApp(
 
     next();
   });
+
+  // Load API routes from routes directory
+  const routesFiles = recursiveReaddir(__dirname + "/routes");
+
+  for (const file of routesFiles) {
+    const mod = require(file);
+    const route: ReturnType<typeof createAPIRoute> = mod.default || mod;
+
+    route.execute(app, client);
+
+    console.log(
+      chalk.gray("[") +
+        chalk.magenta("API") +
+        chalk.gray("] ") +
+        chalk.yellow("Loaded route file: ") +
+        chalk.cyan(file.replace(__dirname, "")),
+    );
+    route.data.methods.forEach((method) =>
+      console.log(
+        "\t" +
+          chalk.gray("[") +
+          chalk.green(method.toUpperCase()) +
+          chalk.gray("] ") +
+          chalk.cyan(route.data.path),
+      ),
+    );
+  }
 
   app.listen(config.port, () => {
     const bootTime = performance.now() - start;

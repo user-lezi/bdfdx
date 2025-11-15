@@ -23,6 +23,13 @@ client.once("clientReady", () => {
     console.log(chalk_1.default.gray(" └─") +
         chalk_1.default.white(" Guild Count: ") +
         chalk_1.default.cyan(`${client.guilds.cache.size}\n`));
+    function fetchStuff() {
+        // Ensure application data is fresh
+        client.application.fetch();
+        client.application.commands.fetch();
+    }
+    fetchStuff();
+    setInterval(fetchStuff, 600000);
     (0, app_1.createApp)(client, config_1.CONFIG);
 });
 client.login(config_1.CONFIG.botToken);

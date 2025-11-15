@@ -27,6 +27,14 @@ client.once("clientReady", () => {
       chalk.cyan(`${client.guilds.cache.size}\n`),
   );
 
+  function fetchStuff() {
+    // Ensure application data is fresh
+    client.application!.fetch();
+    client.application!.commands.fetch();
+  }
+  fetchStuff();
+  setInterval(fetchStuff, 600000);
+
   createApp(client as Client<true>, CONFIG);
 });
 
