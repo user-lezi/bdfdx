@@ -7,9 +7,11 @@ const chalk_1 = __importDefault(require("chalk"));
 const discord_js_1 = require("discord.js");
 const config_1 = require("./config");
 const app_1 = require("./app");
+// Create a client instance
 const client = new discord_js_1.Client({
     intents: ["Guilds"],
 });
+// Once the client is ready, do bot details log and run the express code
 client.once("clientReady", () => {
     console.log("\n" + chalk_1.default.greenBright("✔ Discord Bot Connected"));
     console.log(chalk_1.default.gray(" ├─") +
