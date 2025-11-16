@@ -1,4 +1,4 @@
-import { createAPIRoute } from "../apiRoute";
+import { createAPIRoute } from "../../apiRoute";
 import os from "os";
 
 export default createAPIRoute({

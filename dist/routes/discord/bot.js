@@ -3,7 +3,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-const apiRoute_1 = require("../apiRoute");
+const apiRoute_1 = require("../../apiRoute");
 const os_1 = __importDefault(require("os"));
 exports.default = (0, apiRoute_1.createAPIRoute)({
     path: "/bot",
