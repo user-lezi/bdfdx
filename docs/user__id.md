@@ -2,7 +2,7 @@
 > Fetches a user's public Discord profile and optionally returns more detailed information.
 
 **🛠 Methods:** `GET`
-**📁 Source:** `\dist\routes\user.js`
+**📁 Source:** `\dist\routes\discord\user.js`
 
 ### 🧪 Example  
 ```http

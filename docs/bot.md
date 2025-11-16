@@ -2,7 +2,7 @@
 > Returns all the information about the bot.
 
 **🛠 Methods:** `GET`
-**📁 Source:** `\dist\routes\bot.js`
+**📁 Source:** `\dist\routes\discord\bot.js`
 
 ### 🧪 Example  
 ```http

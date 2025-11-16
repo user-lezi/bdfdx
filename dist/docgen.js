@@ -79,8 +79,9 @@ ${route.methods[0].toUpperCase()} ${route.path}
 // ---------------------------
 function generateDocs() {
     console.log(chalk_1.default.blueBright("📄 Generating API documentation...\n"));
-    if (!fs_1.default.existsSync(DOCS_DIR))
-        fs_1.default.mkdirSync(DOCS_DIR);
+    if (fs_1.default.existsSync(DOCS_DIR))
+        fs_1.default.rmSync(DOCS_DIR, { recursive: true });
+    fs_1.default.mkdirSync(DOCS_DIR);
     const files = recursiveReaddir(ROUTES_DIR);
     const docsIndex = [];
     for (const file of files) {
