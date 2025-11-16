@@ -18,7 +18,7 @@
   "type": "commonjs",
   "main": "dist/index.js",
   "scripts": {
-    "pretty": "prettier src -w",
+    "pretty": "prettier src -w & prettier panel -w",
     "build": "tsc",
     "test": "node ."
   },

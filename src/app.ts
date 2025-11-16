@@ -12,6 +12,11 @@ export async function createApp(
   const app = express();
 
   app.use(express.json());
+  app.use(express.static("panel"));
+
+  app.get("/", (req, res) => {
+    res.sendFile("panel/index.html");
+  });
 
   // Password Checker
   app.get("/password", (req, res) => {

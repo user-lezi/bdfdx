@@ -11,6 +11,10 @@ async function createApp(client, config) {
     const start = performance.now();
     const app = (0, express_1.default)();
     app.use(express_1.default.json());
+    app.use(express_1.default.static("panel"));
+    app.get("/", (req, res) => {
+        res.sendFile("panel/index.html");
+    });
     // Password Checker
     app.get("/password", (req, res) => {
         const headerPass = req.headers.password;
