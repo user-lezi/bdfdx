@@ -13,6 +13,15 @@ export async function createApp(
 
   app.use(express.json());
 
+  // Password Checker
+  app.get("/password", (req, res) => {
+    const headerPass = req.headers.password;
+    const queryPass = req.query.password;
+    const valid =
+      headerPass === config.password || queryPass === config.password;
+    res.json({ valid });
+  });
+
   // 🔒 Protect all /api routes
   app.use("/api", (req, res, next) => {
     const headerPass = req.headers.password;
