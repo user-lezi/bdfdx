@@ -2,7 +2,6 @@ import { createAPIRoute } from "../../../apiRoute";
 import {
   ChannelType,
   type MessageCreateOptions,
-  type JSONEncodable,
   MessagePayload,
 } from "discord.js";
 
