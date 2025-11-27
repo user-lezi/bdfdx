@@ -13,5 +13,5 @@ POST /api/channel/:id/messages
 |------|-------------|
 | `content` | Message text content |
 | `embeds` | Array of embed objects |
-| `components` | V1 or V2 component array (depending on ?v2=) |
+| `components` | Array of components |
 
