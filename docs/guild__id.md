@@ -2,7 +2,7 @@
 > Fetches a guild's public information and optionally returns more detailed metadata.
 
 **🛠 Methods:** `GET`
-**📁 Source:** `\dist\routes\discord\guild.js`
+**📁 Source:** `\dist\routes\discord\guild\guild.js`
 
 ### 🧪 Example  
 ```http

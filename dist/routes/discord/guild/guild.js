@@ -1,6 +1,6 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-const apiRoute_1 = require("../../apiRoute");
+const apiRoute_1 = require("../../../apiRoute");
 exports.default = (0, apiRoute_1.createAPIRoute)({
     path: "/guild/:id",
     methods: ["get"],

@@ -1,5 +1,5 @@
 import { Guild } from "discord.js";
-import { createAPIRoute } from "../../apiRoute";
+import { createAPIRoute } from "../../../apiRoute";
 
 export default createAPIRoute({
   path: "/guild/:id",
