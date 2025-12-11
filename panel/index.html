@@ -1,0 +1,37 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title></title>
+    <link rel="stylesheet" href="style.css" />
+  </head>
+  <body>
+    <div id="password-screen" class="center">
+      <h1 class="gradient-text">Enter Password</h1>
+      <input type="password" id="password-input" placeholder="Password" />
+      <button onclick="validatePassword()">Submit</button>
+      <p id="error" class="error">Incorrect Password</p>
+    </div>
+
+    <div id="panel" class="center">
+      <h1 class="gradient-text">BDFDX PANEL</h1>
+
+      <div class="card">
+        <img class="banner" id="bot-banner" />
+        <img class="avatar" id="bot-avatar" />
+        <h2 id="bot-name"></h2>
+        <p id="bot-desc"></p>
+        <button id="invite-btn">Invite</button>
+      </div>
+
+      <div class="stats">
+        <p>Guilds: <span id="guilds">0</span></p>
+        <p>Members: <span id="members">0</span></p>
+        <p>Uptime: <span id="uptime">0s</span></p>
+      </div>
+    </div>
+
+    <script src="script.js"></script>
+  </body>
+</html>
