@@ -253,7 +253,11 @@ window.onload = async () => {
   const valid = await validatePassword(pw);
   if (valid) {
     hide(login);
-    setTimeout(() => show(panel), 120);
+
+    setTimeout(() => {
+      show(panel);
+      fetchBotData();
+    }, 120);
   } else {
     localStorage.removeItem("panelAuth");
   }
