@@ -7,27 +7,34 @@
     <link rel="stylesheet" href="style.css" />
   </head>
   <body>
-    <div id="password-screen" class="center glass">
+    <!-- LOGIN -->
+    <div id="password-screen" class="center glass login">
       <h1 class="title">Sign In</h1>
       <input type="password" id="password-input" placeholder="Panel password" />
       <button onclick="submitPassword()">Continue</button>
       <p id="error" class="error">Incorrect password</p>
     </div>
 
-    <div id="panel" class="center glass">
-      <div class="card">
-        <img class="banner" id="bot-banner" />
-        <img class="avatar" id="bot-avatar" />
+    <!-- PANEL -->
+    <div id="panel" class="center glass panel">
+      <div class="panel-grid">
+        <!-- LEFT -->
+        <section class="panel-main glass-sub">
+          <img class="banner" id="bot-banner" />
+          <img class="avatar" id="bot-avatar" />
 
-        <h2 id="bot-name"></h2>
-        <p id="bot-desc"></p>
+          <h2 id="bot-name">Loading…</h2>
+          <p id="bot-desc"></p>
+        </section>
 
-        <button id="invite-btn" class="secondary">Invite to Discord</button>
-        <button id="logout-btn" class="secondary" onclick="logout()">
-          Log out
-        </button>
+        <!-- RIGHT -->
+        <aside class="panel-side glass-sub">
+          <button id="invite-btn">Invite to Discord</button>
+          <button class="secondary" onclick="logout()">Log out</button>
+        </aside>
       </div>
 
+      <!-- STATS -->
       <div class="stats glass-sub">
         <div>
           <span id="guilds">0</span>

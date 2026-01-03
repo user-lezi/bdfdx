@@ -1,10 +1,10 @@
 @import url("https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap");
 
 :root {
-  --accent-rgb: 88, 101, 242; /* discord blurple */
+  --accent-rgb: 88, 101, 242;
   --accent: rgb(var(--accent-rgb));
 
-  --bg-base: #000;
+  --bg: #000;
   --glass: rgba(255, 255, 255, 0.12);
   --glass-border: rgba(255, 255, 255, 0.18);
 
@@ -13,8 +13,6 @@
 
   --radius-lg: 22px;
   --radius-md: 16px;
-
-  transition: --accent-rgb 0.35s ease;
 }
 
 * {
@@ -25,53 +23,48 @@
 
 body {
   font-family:
-    "Inter",
+    Inter,
     system-ui,
     -apple-system;
   min-height: 100vh;
-  background: var(--bg-base);
+  background: var(--bg);
   color: var(--text-main);
   display: flex;
   align-items: center;
   justify-content: center;
-  padding: 20px;
+  padding: 24px;
   overflow: hidden;
 }
 
+/* Ambient glow */
 body::before {
   content: "";
   position: fixed;
   inset: -30%;
   background: radial-gradient(
     circle at top,
-    rgba(var(--accent-rgb), 0.22),
+    rgba(var(--accent-rgb), 0.25),
     transparent 60%
   );
   filter: blur(90px);
   pointer-events: none;
-  transition: background 0.4s ease;
 }
 
-/* ---------- Layout ---------- */
+/* ---------- Containers ---------- */
 
 .center {
   display: none;
-  flex-direction: column;
-  gap: 18px;
   width: 100%;
-  max-width: 380px;
-
+  max-width: 1100px;
   opacity: 0;
   transform: translateY(12px) scale(0.98);
-  transition:
-    opacity 0.35s ease,
-    transform 0.35s cubic-bezier(0.22, 1, 0.36, 1);
+  transition: 0.35s cubic-bezier(0.22, 1, 0.36, 1);
 }
 
 .center.active {
-  display: flex;
+  display: block;
   opacity: 1;
-  transform: translateY(0) scale(1);
+  transform: none;
 }
 
 .glass {
@@ -80,50 +73,129 @@ body::before {
   border: 1px solid var(--glass-border);
   border-radius: var(--radius-lg);
   padding: 32px;
-  box-shadow: 0 25px 80px rgba(0, 0, 0, 0.5);
+  box-shadow: 0 25px 80px rgba(0, 0, 0, 0.55);
 }
 
-/* ---------- Text ---------- */
+.glass-sub {
+  background: rgba(0, 0, 0, 0.35);
+  border: 1px solid var(--glass-border);
+  border-radius: var(--radius-lg);
+}
 
-h1,
-h2 {
+/* ---------- Login ---------- */
+
+.login {
+  max-width: 380px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.title {
   text-align: center;
-  letter-spacing: -0.02em;
-}
-
-h1 {
-  font-size: 1.6rem;
   font-weight: 700;
+  font-size: 1.6rem;
 }
 
-h2 {
-  font-size: 1.15rem;
+/* ---------- Panel ---------- */
+
+.panel {
+  display: flex;
+  flex-direction: column;
+  gap: 22px;
+}
+
+.panel-grid {
+  display: grid;
+  grid-template-columns: 1.6fr 1fr;
+  gap: 22px;
+}
+
+/* ---------- Bot Card ---------- */
+
+.panel-main {
+  padding: 22px;
+  text-align: center;
+  position: relative;
+}
+
+.banner {
+  width: 100%;
+  height: 160px;
+  border-radius: var(--radius-md);
+  object-fit: cover;
+  opacity: 0.9;
+}
+
+.avatar {
+  width: 96px;
+  height: 96px;
+  border-radius: 50%;
+  border: 3px solid var(--glass-border);
+  position: absolute;
+  top: 130px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: black;
+}
+
+.panel-main h2 {
+  margin-top: 48px;
+  font-size: 1.3rem;
   font-weight: 600;
-  margin-top: 38px;
 }
 
-p {
+.panel-main p {
   font-size: 0.95rem;
   color: var(--text-sub);
+}
+
+/* ---------- Side ---------- */
+
+.panel-side {
+  padding: 22px;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  justify-content: center;
+}
+
+/* ---------- Stats ---------- */
+
+.stats {
+  display: flex;
+  justify-content: space-around;
+  padding: 16px;
+}
+
+.stats div {
   text-align: center;
+}
+
+.stats span {
+  font-weight: 700;
+  font-size: 1.1rem;
+}
+
+.stats label {
+  font-size: 0.75rem;
+  color: var(--text-sub);
 }
 
 /* ---------- Inputs ---------- */
 
 input {
-  width: 100%;
-  padding: 14px 16px;
+  padding: 14px;
   border-radius: var(--radius-md);
   border: 1px solid var(--glass-border);
   background: rgba(0, 0, 0, 0.35);
-  color: #fff;
+  color: white;
   font-size: 1rem;
-  outline: none;
-  transition: border 0.2s ease;
 }
 
 input:focus {
   border-color: var(--accent);
+  outline: none;
 }
 
 /* ---------- Buttons ---------- */
@@ -147,76 +219,21 @@ button {
 button::after {
   content: "";
   position: absolute;
-  inset: -1px;
+  inset: -2px;
   border-radius: inherit;
   pointer-events: none;
   border: 1px solid rgba(var(--accent-rgb), 0);
-  transition: border-color 0.2s ease;
+  transition: 0.2s ease;
+  pointer-events: none;
 }
 
 button:hover::after {
-  border-color: rgba(var(--accent-rgb), 0.55);
-  box-shadow: 0 0 6px rgba(var(--accent-rgb), 0.35);
+  border-color: rgba(var(--accent-rgb), 0.6);
+  box-shadow: 0 0 10px rgba(var(--accent-rgb), 0.4);
 }
 
 button.secondary {
   background: rgba(255, 255, 255, 0.14);
-}
-
-/* ---------- Card ---------- */
-
-.card {
-  position: relative;
-  text-align: center;
-}
-
-.banner {
-  width: 100%;
-  height: 140px;
-  border-radius: var(--radius-md);
-  object-fit: cover;
-  opacity: 0.9;
-}
-
-.avatar {
-  width: 96px;
-  height: 96px;
-  border-radius: 50%;
-  border: 3px solid var(--glass-border);
-  position: absolute;
-  top: 95px;
-  left: 50%;
-  transform: translateX(-50%);
-  background: black;
-}
-
-/* ---------- Stats ---------- */
-
-.stats {
-  display: flex;
-  justify-content: space-between;
-  padding: 14px 18px;
-  margin-top: 14px;
-}
-
-.stats div {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-}
-
-.stats span {
-  font-weight: 700;
-  font-size: 1.05rem;
-}
-
-.stats label {
-  font-size: 0.75rem;
-  color: var(--text-sub);
-}
-
-#uptime {
-  transition: opacity 0.15s ease;
 }
 
 /* ---------- Error ---------- */
@@ -228,9 +245,10 @@ button.secondary {
   text-align: center;
 }
 
-@media (prefers-reduced-motion: reduce) {
-  .center {
-    transition: none;
-    transform: none;
+/* ---------- Responsive ---------- */
+
+@media (max-width: 900px) {
+  .panel-grid {
+    grid-template-columns: 1fr;
   }
 }
