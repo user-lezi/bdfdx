@@ -8,9 +8,9 @@ An external API for BDFD, adding the features that BDFD is too lazy to implement
 1. **Fork the repository**  
 2. **Create a `.env` file** with the following:
 ```env
-PORT=4000
-BOT_TOKEN=your_discord_bot_token
-PASSWORD=your_panel_password
+Port=4000
+BotToken=your_discord_bot_token
+Password=your_panel_password
 ```
 3. Install dependencies
 ```bash
