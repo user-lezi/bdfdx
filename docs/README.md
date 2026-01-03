@@ -6,4 +6,5 @@
 - [/api/guilds](./guilds.md)
 - [/api/guild/:id/members](./guild__id_members.md)
 - [/api/user/:id](./user__id.md)
+- [/api/dapi](./dapi.md)
 - [/api/eval](./eval.md)

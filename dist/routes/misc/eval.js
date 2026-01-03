@@ -1,5 +1,6 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
+const util_1 = require("util");
 const apiRoute_1 = require("../../apiRoute");
 exports.default = (0, apiRoute_1.createAPIRoute)({
     path: "/eval",
@@ -10,27 +11,47 @@ exports.default = (0, apiRoute_1.createAPIRoute)({
         code: "The javascript code to eval. Eg: `console.log('hi');`",
     },
     async callback(ctx) {
-        const body = ctx.req.body;
-        if (!body || typeof body !== "object") {
+        const { code } = ctx.req.body ?? {};
+        if (typeof code !== "string" || !code.trim()) {
             return ctx.res.status(400).json({
-                error: "Invalid or missing JSON body.",
+                ok: false,
+                error: "No code provided",
             });
         }
-        let code = body.code;
-        if (!code)
-            return ctx.res.status(404).json({ message: "No code provided." });
-        let output = {
-            isError: false,
-            output: null,
-            error: null,
-        };
+        const logs = [];
+        // hijack console
+        const originalConsole = { ...console };
+        console.log = (...args) => logs.push(args.map(format).join(" "));
+        console.error = (...args) => logs.push("[ERR] " + args.map(format).join(" "));
+        console.warn = (...args) => logs.push("[WARN] " + args.map(format).join(" "));
         try {
-            output.output = await eval(code);
+            // async eval wrapper
+            const result = await (async () => eval(code))();
+            ctx.res.json({
+                ok: true,
+                result: format(result),
+                logs,
+                type: typeof result,
+            });
         }
-        catch (error) {
-            output.error = error;
-            output.isError = true;
+        catch (err) {
+            ctx.res.json({
+                ok: false,
+                error: err?.stack ?? String(err),
+                logs,
+            });
         }
-        ctx.res.json(output);
+        finally {
+            // restore console
+            Object.assign(console, originalConsole);
+        }
     },
 });
+function format(value) {
+    return (0, util_1.inspect)(value, {
+        depth: 5,
+        colors: false,
+        maxArrayLength: 50,
+        breakLength: 80,
+    });
+}

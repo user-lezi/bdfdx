@@ -1,3 +1,4 @@
+import { inspect } from "util";
 import { createAPIRoute } from "../../apiRoute";
 
 export default createAPIRoute({
@@ -12,29 +13,54 @@ export default createAPIRoute({
   },
 
   async callback(ctx) {
-    const body = ctx.req.body;
-    if (!body || typeof body !== "object") {
+    const { code } = ctx.req.body ?? {};
+
+    if (typeof code !== "string" || !code.trim()) {
       return ctx.res.status(400).json({
-        error: "Invalid or missing JSON body.",
+        ok: false,
+        error: "No code provided",
       });
     }
 
-    let code: string = body.code;
-    if (!code)
-      return ctx.res.status(404).json({ message: "No code provided." });
+    const logs: string[] = [];
 
-    let output = {
-      isError: false,
-      output: null,
-      error: null,
-    };
+    // hijack console
+    const originalConsole = { ...console };
+
+    console.log = (...args: any[]) => logs.push(args.map(format).join(" "));
+    console.error = (...args: any[]) =>
+      logs.push("[ERR] " + args.map(format).join(" "));
+    console.warn = (...args: any[]) =>
+      logs.push("[WARN] " + args.map(format).join(" "));
+
     try {
-      output.output = await eval(code);
-    } catch (error: any) {
-      output.error = error;
-      output.isError = true;
-    }
+      // async eval wrapper
+      const result = await (async () => eval(code))();
 
-    ctx.res.json(output);
+      ctx.res.json({
+        ok: true,
+        result: format(result),
+        logs,
+        type: typeof result,
+      });
+    } catch (err: any) {
+      ctx.res.json({
+        ok: false,
+        error: err?.stack ?? String(err),
+        logs,
+      });
+    } finally {
+      // restore console
+      Object.assign(console, originalConsole);
+    }
   },
 });
+
+function format(value: any) {
+  return inspect(value, {
+    depth: 5,
+    colors: false,
+    maxArrayLength: 50,
+    breakLength: 80,
+  });
+}
