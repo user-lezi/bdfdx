@@ -21,19 +21,23 @@
   padding: 0;
 }
 
+html,
+body {
+  height: 100%;
+  overflow: hidden;
+}
+
 body {
   font-family:
     Inter,
     system-ui,
     -apple-system;
-  min-height: 100vh;
   background: var(--bg);
   color: var(--text-main);
   display: flex;
   align-items: center;
   justify-content: center;
   padding: 24px;
-  overflow: hidden;
 }
 
 /* Ambient glow */
@@ -56,13 +60,16 @@ body::before {
   display: none;
   width: 100%;
   max-width: 1100px;
+  max-height: calc(100vh - 48px);
+  overflow: hidden;
   opacity: 0;
   transform: translateY(12px) scale(0.98);
-  transition: 0.35s cubic-bezier(0.22, 1, 0.36, 1);
+  transition: 0.45s cubic-bezier(0.22, 1, 0.36, 1);
 }
 
 .center.active {
-  display: block;
+  display: flex;
+  flex-direction: column;
   opacity: 1;
   transform: none;
 }
@@ -103,6 +110,22 @@ body::before {
   display: flex;
   flex-direction: column;
   gap: 22px;
+  overflow-y: auto;
+
+  scrollbar-width: none; /* Firefox */
+  -ms-overflow-style: none; /* IE / Edge */
+}
+.panel::-webkit-scrollbar {
+  width: 0;
+  height: 0;
+}
+.panel::after {
+  content: "";
+  position: sticky;
+  bottom: 0;
+  height: 24px;
+  background: linear-gradient(to bottom, transparent, rgba(0, 0, 0, 0.6));
+  pointer-events: none;
 }
 
 .panel-grid {
@@ -234,6 +257,80 @@ button:hover::after {
 
 button.secondary {
   background: rgba(255, 255, 255, 0.14);
+}
+
+/* ---------- Guild List --------- */
+.wide {
+  width: min(1100px, 95vw);
+}
+
+.panel-header {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  margin-bottom: 16px;
+}
+
+.guild-list {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+  gap: 14px;
+}
+
+.guild-card {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+
+  padding: 12px 14px;
+  border-radius: 14px;
+
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+
+  transition:
+    transform 0.2s ease,
+    border-color 0.2s ease;
+}
+
+.guild-card:hover {
+  transform: translateY(-2px);
+  border-color: rgba(var(--accent-rgb), 0.6);
+}
+
+.guild-icon {
+  width: 42px;
+  height: 42px;
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.08);
+  object-fit: cover;
+}
+
+.guild-info {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+}
+
+.guild-name {
+  font-weight: 600;
+}
+
+.guild-id {
+  font-size: 12px;
+}
+
+.guild-open {
+  padding: 6px 12px;
+  border-radius: 10px;
+  border: 1px solid rgba(var(--accent-rgb), 0.5);
+  background: transparent;
+  color: var(--accent);
+  cursor: pointer;
+}
+
+.guild-open:hover {
+  background: rgba(var(--accent-rgb), 0.15);
 }
 
 /* ---------- Error ---------- */

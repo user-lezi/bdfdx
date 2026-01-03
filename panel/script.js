@@ -23,6 +23,7 @@ function fetchAPI(url, password, method = "GET", options = {}) {
 // =====================
 let AccentColor;
 let BotData;
+let BotGuilds;
 
 // =====================
 // Accent color extraction
@@ -147,6 +148,7 @@ function loadPanel() {
   setTimeout(() => {
     show(panel);
     fetchBotData();
+    loadGuilds();
   }, 120);
 }
 
@@ -239,26 +241,183 @@ function updateUptime(initialMs) {
 }
 
 // =====================
+// Guild Pagination
+// =====================
+let currentPage = 1;
+function getGuildsPerPage() {
+  return window.innerWidth <= 900 ? 8 : 9;
+}
+window.addEventListener("resize", () => {
+  renderGuildsPage(currentPage);
+});
+function renderGuildsPage(page = 1) {
+  const list = document.getElementById("guild-list");
+  list.innerHTML = "";
+
+  if (!BotGuilds || !BotGuilds.length) return;
+  const perPage = getGuildsPerPage();
+  const totalPages = Math.ceil(BotGuilds.length / perPage);
+
+  // Clamp page: if requested page > totalPages, go to last page
+  currentPage = Math.min(page, totalPages);
+
+  const start = (currentPage - 1) * perPage;
+  const end = start + perPage;
+
+  const pageGuilds = BotGuilds.slice(start, end);
+
+  const template = document.getElementById("guild-card-template");
+
+  for (const g of pageGuilds) {
+    const card = template.content.cloneNode(true);
+
+    const icon = card.querySelector(".guild-icon");
+    const name = card.querySelector(".guild-name");
+    const id = card.querySelector(".guild-id");
+    const btn = card.querySelector(".guild-open");
+
+    icon.src = g.icon ?? "/fallback-guild.png";
+    name.textContent = g.name;
+    id.textContent = g.id;
+    btn.onclick = () => {
+      const searchParams = new URLSearchParams();
+      searchParams.set("tab", "manage-guild");
+      searchParams.set("id", g.id);
+      window.history.pushState({}, "", `?${searchParams.toString()}`);
+      openGuildPanel(g);
+    };
+
+    list.appendChild(card);
+  }
+
+  renderGuildPaginationControls();
+}
+
+function renderGuildPaginationControls() {
+  const containerId = "guild-pagination";
+  let container = document.getElementById(containerId);
+  if (!container) {
+    container = document.createElement("div");
+    container.id = containerId;
+    container.style.display = "flex";
+    container.style.justifyContent = "center";
+    container.style.gap = "12px";
+    container.style.marginTop = "16px";
+    document.getElementById("panel").appendChild(container);
+  }
+
+  container.innerHTML = "";
+
+  const totalPages = Math.ceil(BotGuilds.length / getGuildsPerPage());
+
+  if (totalPages <= 1) return;
+
+  const prevBtn = document.createElement("button");
+  prevBtn.textContent = "◀ Previous";
+  prevBtn.disabled = currentPage === 1;
+  prevBtn.onclick = () => {
+    currentPage--;
+    renderGuildsPage(currentPage);
+  };
+
+  const nextBtn = document.createElement("button");
+  nextBtn.textContent = "Next ▶";
+  nextBtn.disabled = currentPage === totalPages;
+  nextBtn.onclick = () => {
+    currentPage++;
+    renderGuildsPage(currentPage);
+  };
+
+  const pageIndicator = document.createElement("span");
+  pageIndicator.textContent = `Page ${currentPage} / ${totalPages}`;
+  pageIndicator.style.alignSelf = "center";
+  pageIndicator.style.color = "var(--text-sub)";
+  pageIndicator.style.fontSize = "0.9rem";
+
+  container.appendChild(prevBtn);
+  container.appendChild(pageIndicator);
+  container.appendChild(nextBtn);
+}
+
+// =====================
+// Fetch bot guilds
+// =====================
+async function loadGuilds() {
+  const pw = localStorage.getItem("panelAuth");
+  if (!pw) return;
+
+  if (!BotGuilds) {
+    BotGuilds = await fetchAPI(`/api/guilds`, pw).then((x) => x.json());
+  }
+
+  currentPage = 1;
+  renderGuildsPage(currentPage);
+}
+// =====================
+// Show the guild info
+// =====================
+function openGuildPanel(guild) {
+  // hide main panel
+  hide(document.getElementById("panel"));
+
+  // show guild panel
+  const guildPanel = document.getElementById("guild-panel");
+  show(guildPanel);
+
+  document.getElementById("guild-name-header").textContent = guild.name;
+  document.getElementById("guild-id-header").textContent = `ID: ${guild.id}`;
+
+  const content = document.getElementById("guild-content");
+  content.innerHTML = `<p>Loading data for <strong>${guild.name}</strong>...</p>`;
+
+  const pw = localStorage.getItem("panelAuth");
+  fetchAPI(`/api/guild/${guild.id}`, pw)
+    .then((res) => res.json())
+    .then((data) => {
+      content.innerHTML = `
+        <p><strong>Guild Name:</strong> ${data.name}</p>
+        <p><strong>Members:</strong> ${data.count.members ?? 0}</p>
+        <p><strong>Channels:</strong> ${data.count.channels ?? 0}</p>
+      `;
+    })
+    .catch((err) => {
+      content.innerHTML = `<p style="color:red;">Failed to load guild data.</p>`;
+    });
+}
+
+document.getElementById("back-btn").onclick = () => {
+  const url = new URL(window.location);
+  url.searchParams.set("tab", "panel");
+  window.history.pushState({}, "", url);
+
+  hide(document.getElementById("guild-panel"));
+  show(document.getElementById("panel"));
+};
+
+// =====================
 // On load
 // =====================
 window.onload = async () => {
   const login = document.getElementById("password-screen");
-  const panel = document.getElementById("panel");
-
   show(login);
 
   const pw = localStorage.getItem("panelAuth");
   if (!pw) return;
 
   const valid = await validatePassword(pw);
-  if (valid) {
-    hide(login);
-
-    setTimeout(() => {
-      show(panel);
-      fetchBotData();
-    }, 120);
-  } else {
+  if (!valid) {
     localStorage.removeItem("panelAuth");
+    return;
+  }
+
+  const params = new URLSearchParams(window.location.search);
+  const tab = params.get("tab");
+
+  if (tab === "manage-guild" && params.get("id")) {
+    loadPanel(); // still need bot data for sidebar/stats
+    const guild = BotGuilds?.find((g) => g.id === params.get("id"));
+    if (guild) openGuildPanel(guild);
+  } else {
+    loadPanel();
   }
 };
