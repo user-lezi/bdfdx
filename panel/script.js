@@ -1,10 +1,66 @@
-// Utility functions
-const $ = (id) => document.getElementById(id);
-const show = (el) => (el.style.display = "flex");
-const hide = (el) => (el.style.display = "none");
+// =====================
+// Utilities
+// =====================
+function show(el) {
+  el.style.display = "flex";
+  requestAnimationFrame(() => {
+    el.classList.add("active");
+  });
+}
 
-// Calculate dominant color from avatar
+function hide(el) {
+  el.classList.remove("active");
+  setTimeout(() => {
+    el.style.display = "none";
+  }, 350);
+}
+function fetchAPI(url, password, method = "GET", options = {}) {
+  return fetch(url, { headers: { password }, method, ...options });
+}
+
+// =====================
+// Globals
+// =====================
+let AccentColor;
+let BotData;
+
+// =====================
+// Accent color extraction
+// =====================
+function setAccentColor(color) {
+  let r, g, b;
+
+  if (color.startsWith("#")) {
+    const hex = color.replace("#", "");
+    r = parseInt(hex.slice(0, 2), 16);
+    g = parseInt(hex.slice(2, 4), 16);
+    b = parseInt(hex.slice(4, 6), 16);
+  } else {
+    const match = color.match(/\d+/g);
+    if (!match || match.length < 3) return;
+    [r, g, b] = match.map(Number);
+  }
+
+  // Relative luminance (WCAG)
+  const luminance = 0.2126 * r + 0.7152 * g + 0.0722 * b;
+
+  const MAX_LUMA = 180; // tweak: lower = darker UI
+  if (luminance > MAX_LUMA) {
+    const scale = MAX_LUMA / luminance;
+    r = Math.round(r * scale);
+    g = Math.round(g * scale);
+    b = Math.round(b * scale);
+  }
+
+  document.documentElement.style.setProperty(
+    "--accent-rgb",
+    `${r}, ${g}, ${b}`,
+  );
+}
+
 async function extractAccentColor(imgUrl) {
+  if (AccentColor) return AccentColor;
+
   return new Promise((resolve) => {
     const img = new Image();
     img.crossOrigin = "anonymous";
@@ -24,133 +80,181 @@ async function extractAccentColor(imgUrl) {
         b = 0,
         count = 0;
       for (let i = 0; i < data.length; i += 4 * 50) {
-        // sample every 50px
         r += data[i];
         g += data[i + 1];
         b += data[i + 2];
         count++;
       }
 
-      resolve(
-        `rgb(${Math.floor(r / count)}, ${Math.floor(g / count)}, ${Math.floor(b / count)})`,
-      );
+      AccentColor = `rgb(${(r / count) | 0}, ${(g / count) | 0}, ${(b / count) | 0})`;
+      resolve(AccentColor);
     };
 
-    img.onerror = () => resolve("#5865f2"); // fallback
+    img.onerror = () => resolve("rgb(10, 132, 255)");
   });
 }
 
-// Validate password
-async function validatePassword(input) {
-  const pw = input ?? $("password-input").value;
-
+// =====================
+// Password validation (NO UI LOGIC)
+// =====================
+async function validatePassword(pw) {
   try {
-    const res = await fetch(`/password?password=${pw}`);
+    const res = await fetch(`/password?password=${encodeURIComponent(pw)}`);
     const data = await res.json();
-
-    if (data.valid) {
-      localStorage.setItem("panelAuth", pw);
-      loadPanel();
-    } else {
-      $("error").style.display = "block";
-    }
+    return data.valid === true;
   } catch {
-    $("error").innerText = "API Error";
-    $("error").style.display = "block";
+    return false;
   }
 }
 
-// Load main panel
-function loadPanel() {
-  hide($("password-screen"));
-  show($("panel"));
-  fetchBotData();
+// =====================
+// Logout
+// =====================
+function logout() {
+  localStorage.removeItem("panelAuth");
+  BotData = null;
+
+  hide(document.getElementById("panel"));
+  show(document.getElementById("password-screen"));
 }
 
-// Fetch bot data
+// =====================
+// Login submit
+// =====================
+async function submitPassword() {
+  const pw = document.getElementById("password-input").value;
+  const valid = await validatePassword(pw);
+
+  if (!valid) {
+    document.getElementById("error").style.display = "block";
+    return;
+  }
+
+  localStorage.setItem("panelAuth", pw);
+  loadPanel();
+}
+
+// =====================
+// Panel loader
+// =====================
+function loadPanel() {
+  const login = document.getElementById("password-screen");
+  const panel = document.getElementById("panel");
+
+  hide(login);
+
+  // slight delay
+  setTimeout(() => {
+    show(panel);
+    fetchBotData();
+  }, 120);
+}
+
+// =====================
+// Fetch bot data (NO validation here)
+// =====================
 async function fetchBotData() {
   const pw = localStorage.getItem("panelAuth");
   if (!pw) return;
 
-  await validatePassword(pw); // ensure valid
-
   try {
-    const res = await fetch(`/api/bot?password=${pw}`);
-    const bot = await res.json();
-
-    // Fill UI
-    $("bot-name").innerText = bot.user.tag ?? "Unknown Bot";
-    $("bot-desc").innerText = bot.application.description ?? "No description";
-
-    // Avatar + accent color
-    $("bot-avatar").src = bot.user.avatar;
-    const accent = await extractAccentColor(bot.user.avatar);
-    document.documentElement.style.setProperty("--accent-color", accent);
-
-    // Banner (fallback to generated)
-    if (bot.user.banner) {
-      $("bot-banner").src = bot.user.banner;
+    let bot;
+    if (BotData) {
+      bot = BotData;
     } else {
-      // Generate gradient banner using accent
+      bot = BotData = await fetchAPI(`/api/bot`, pw).then((x) => x.json());
+    }
+
+    // UI fill
+    document.getElementById("bot-name").innerText =
+      bot.user?.tag ?? "Unknown Bot";
+    document.getElementById("bot-desc").innerText =
+      bot.application?.description ?? "No description";
+
+    document.getElementById("bot-avatar").src = bot.user.avatar;
+
+    const accent = await extractAccentColor(bot.user.avatar);
+    setAccentColor(accent);
+
+    if (bot.user.banner) {
+      document.getElementById("bot-banner").src = bot.user.banner;
+    } else {
       const banner = document.createElement("canvas");
       banner.width = 600;
       banner.height = 200;
       const ctx = banner.getContext("2d");
 
-      const grad = ctx.createLinearGradient(0, 0, banner.width, banner.height);
+      const grad = ctx.createLinearGradient(0, 0, 600, 200);
       grad.addColorStop(0, accent);
       grad.addColorStop(1, "#000");
-      ctx.fillStyle = grad;
-      ctx.fillRect(0, 0, banner.width, banner.height);
 
-      $("bot-banner").src = banner.toDataURL();
+      ctx.fillStyle = grad;
+      ctx.fillRect(0, 0, 600, 200);
+
+      document.getElementById("bot-banner").src = banner.toDataURL();
     }
 
-    // Invite button
-    $("invite-btn").onclick = () =>
+    document.getElementById("invite-btn").onclick = () =>
       window.open(
         `https://discord.com/oauth2/authorize?client_id=${bot.user.id}`,
         "_blank",
       );
 
-    // Stats
-    $("guilds").innerText = bot.stats.guilds ?? 0;
-    $("members").innerText = bot.stats.users ?? 0;
+    document.getElementById("guilds").innerText = bot.stats?.guilds ?? 0;
+    document.getElementById("members").innerText = bot.stats?.users ?? 0;
 
-    updateUptime(bot.stats.uptime ?? 0);
+    updateUptime(bot.stats?.uptime ?? 0);
     document.title = `${bot.user.username} Panel`;
-  } catch (err) {
-    $("guilds").innerText = "ERR";
-    $("members").innerText = "ERR";
+  } catch {
+    document.getElementById("guilds").innerText = "ERR";
+    document.getElementById("members").innerText = "ERR";
   }
 }
 
+// =====================
 // Uptime formatter
-function updateUptime(initial) {
-  let ms = initial;
+// =====================
+function updateUptime(initialMs) {
+  let ms = initialMs;
+  const el = document.getElementById("uptime");
 
-  const fmt = (ms) => {
-    const s = ms / 1000;
-    const m = s / 60;
-    const h = m / 60;
-    const d = h / 24;
-    return d >= 1
-      ? `${d.toFixed(1)}d`
-      : h >= 1
-        ? `${h.toFixed(1)}h`
-        : m >= 1
-          ? `${m.toFixed(1)}m`
-          : `${s.toFixed(1)}s`;
+  const format = (ms) => {
+    const seconds = ms / 1000;
+    if (seconds < 60) return `${seconds.toFixed(1)}s`;
+
+    const minutes = seconds / 60;
+    if (minutes < 60) return `${minutes.toFixed(1)}m`;
+
+    const hours = minutes / 60;
+    if (hours < 24) return `${hours.toFixed(1)}h`;
+
+    const days = hours / 24;
+    return `${days.toFixed(1)}d`;
   };
 
   setInterval(() => {
-    ms += 1000;
-    $("uptime").innerText = fmt(ms);
-  }, 1000);
+    ms += 10_000;
+    el.textContent = format(ms);
+  }, 10_000);
 }
 
-// On page load
-window.onload = () => {
-  show($("password-screen"));
-  if (localStorage.getItem("panelAuth")) loadPanel();
+// =====================
+// On load
+// =====================
+window.onload = async () => {
+  const login = document.getElementById("password-screen");
+  const panel = document.getElementById("panel");
+
+  show(login);
+
+  const pw = localStorage.getItem("panelAuth");
+  if (!pw) return;
+
+  const valid = await validatePassword(pw);
+  if (valid) {
+    hide(login);
+    setTimeout(() => show(panel), 120);
+  } else {
+    localStorage.removeItem("panelAuth");
+  }
 };
