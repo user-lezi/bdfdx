@@ -14,7 +14,6 @@ Password=your_panel_password
 ```
 3. Install dependencies
 ```bash
-npm init -y   # if not already done
 npm install
 ```
 4. Run the server
