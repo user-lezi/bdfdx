@@ -33,13 +33,20 @@ export default createAPIRoute({
         code: 404,
       });
     }
+    // Owner
+    let owner = await guild.fetchOwner({ cache: true });
 
     // Base guild JSON
     const guildJSON: any = {
       id: guild.id,
       name: guild.name,
       description: guild.description ?? null,
-      ownerId: guild.ownerId,
+      owner: {
+        id: owner.id,
+        username: owner.user.username,
+        name: owner.user.displayName,
+        icon: owner.user.displayAvatarURL({ size: 1024 }),
+      },
       createdTimestamp: guild.createdTimestamp,
       nsfwLevel: guild.nsfwLevel,
       features: guild.features,
