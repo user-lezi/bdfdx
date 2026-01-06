@@ -48,7 +48,12 @@ export default createAPIRoute({
     if (includeMutual) {
       userJSON.mutualGuilds = ctx.client.guilds.cache
         .filter((g) => g.members.cache.has(id))
-        .map((g) => g.id);
+        .map((g) => ({
+          id: g.id,
+          name: g.name,
+          nickname: g.members.cache.get(id)!.nickname,
+          icon: g.iconURL({ size: 1024 }),
+        }));
     }
 
     // Optional: raw Discord.js fields
