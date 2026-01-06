@@ -47,7 +47,10 @@ export default createAPIRoute({
         name: owner.user.displayName,
         icon: owner.user.displayAvatarURL({ size: 1024 }),
       },
-      createdTimestamp: guild.createdTimestamp,
+      dates: {
+        created: guild.createdTimestamp,
+        joined: guild.joinedTimestamp,
+      },
       nsfwLevel: guild.nsfwLevel,
       features: guild.features,
 
