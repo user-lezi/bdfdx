@@ -1,423 +1,422 @@
-// =====================
-// Utilities
-// =====================
+// ================= helpers =================
 function show(el) {
-  el.style.display = "flex";
+  el.classList.remove("hidden");
   requestAnimationFrame(() => {
-    el.classList.add("active");
+    el.classList.remove("opacity-0", "scale-90");
   });
 }
 
 function hide(el) {
-  el.classList.remove("active");
-  setTimeout(() => {
-    el.style.display = "none";
-  }, 350);
-}
-function fetchAPI(url, password, method = "GET", options = {}) {
-  return fetch(url, { headers: { password }, method, ...options });
+  el.classList.add("opacity-0", "scale-90");
+  setTimeout(() => el.classList.add("hidden"), 300);
 }
 
-// =====================
-// Globals
-// =====================
-let AccentColor;
-let BotData;
-let BotGuilds;
+const PANELS = {
+  login: "password-screen",
+  panel: "panel",
+  guild: "guild-panel",
+  user: "user-panel",
+};
 
-// =====================
-// Accent color extraction
-// =====================
-function setAccentColor(color) {
-  let r, g, b;
+let __p = null;
 
-  if (color.startsWith("#")) {
-    const hex = color.replace("#", "");
-    r = parseInt(hex.slice(0, 2), 16);
-    g = parseInt(hex.slice(2, 4), 16);
-    b = parseInt(hex.slice(4, 6), 16);
-  } else {
-    const match = color.match(/\d+/g);
-    if (!match || match.length < 3) return;
-    [r, g, b] = match.map(Number);
+function showPanel(name) {
+  const id = PANELS[name] ?? name;
+  if (__p === id) return;
+
+  console.log("[ui] showPanel:", id);
+
+  for (const pid of Object.values(PANELS)) {
+    const el = document.getElementById(pid);
+    if (!el) continue;
+    pid === id ? show(el) : hide(el);
   }
 
-  // Relative luminance (WCAG)
-  const luminance = 0.2126 * r + 0.7152 * g + 0.0722 * b;
+  __p = id;
+}
 
-  const MAX_LUMA = 180; // tweak: lower = darker UI
-  if (luminance > MAX_LUMA) {
-    const scale = MAX_LUMA / luminance;
-    r = Math.round(r * scale);
-    g = Math.round(g * scale);
-    b = Math.round(b * scale);
+// ================= api =================
+function fetchAPI(url, password, method = "GET", options = {}) {
+  return fetch(url, { method, headers: { password }, ...options });
+}
+
+// ================= state =================
+let CurrentAccentColor;
+let AccentColorCache = {};
+let BotData;
+let BotGuilds;
+let currentPage = 1;
+
+// ================= accent =================
+function setAccentColor(color) {
+  if (color === CurrentAccentColor) return;
+  CurrentAccentColor = color;
+
+  let [r, g, b] = color.match(/\d+/g).map(Number);
+  const lum = 0.2126 * r + 0.7152 * g + 0.0722 * b;
+
+  if (lum > 180) {
+    const k = 180 / lum;
+    r = (r * k) | 0;
+    g = (g * k) | 0;
+    b = (b * k) | 0;
   }
 
   document.documentElement.style.setProperty(
     "--accent-rgb",
     `${r}, ${g}, ${b}`,
   );
+
+  console.log("[accent]", r, g, b);
 }
 
-async function extractAccentColor(imgUrl) {
-  if (AccentColor) return AccentColor;
+async function extractAccentColor(src, refresh = false) {
+  if (AccentColorCache[src] && !refresh) return AccentColorCache[src];
 
   return new Promise((resolve) => {
     const img = new Image();
     img.crossOrigin = "anonymous";
-    img.src = imgUrl;
+    img.src = src;
 
     img.onload = () => {
-      const canvas = document.createElement("canvas");
-      const ctx = canvas.getContext("2d");
-      canvas.width = img.width;
-      canvas.height = img.height;
-      ctx.drawImage(img, 0, 0);
+      const c = document.createElement("canvas");
+      const x = c.getContext("2d");
+      c.width = img.width;
+      c.height = img.height;
+      x.drawImage(img, 0, 0);
 
-      const data = ctx.getImageData(0, 0, canvas.width, canvas.height).data;
-
+      const d = x.getImageData(0, 0, c.width, c.height).data;
       let r = 0,
         g = 0,
         b = 0,
-        count = 0;
-      for (let i = 0; i < data.length; i += 4 * 50) {
-        r += data[i];
-        g += data[i + 1];
-        b += data[i + 2];
-        count++;
+        n = 0;
+
+      for (let i = 0; i < d.length; i += 200) {
+        r += d[i];
+        g += d[i + 1];
+        b += d[i + 2];
+        n++;
       }
 
-      AccentColor = `rgb(${(r / count) | 0}, ${(g / count) | 0}, ${(b / count) | 0})`;
-      resolve(AccentColor);
+      resolve(`rgb(${(r / n) | 0}, ${(g / n) | 0}, ${(b / n) | 0})`);
     };
 
-    img.onerror = () => resolve("rgb(10, 132, 255)");
-  });
+    img.onerror = () => resolve("rgb(88,101,242)");
+  }).then((c) => (AccentColorCache[src] = c));
 }
 
-// =====================
-// Password validation (NO UI LOGIC)
-// =====================
+// ================= auth =================
 async function validatePassword(pw) {
   try {
-    const res = await fetch(`/password?password=${encodeURIComponent(pw)}`);
-    const data = await res.json();
-    return data.valid === true;
+    const r = await fetch(`/password?password=${encodeURIComponent(pw)}`);
+    return (await r.json()).valid === true;
   } catch {
     return false;
   }
 }
 
-// =====================
-// Logout
-// =====================
 function logout() {
+  console.log("[auth] logout");
   localStorage.removeItem("panelAuth");
-  BotData = null;
-
-  hide(document.getElementById("panel"));
-  show(document.getElementById("password-screen"));
+  history.replaceState({}, "", "?");
+  showPanel("login");
 }
 
-// =====================
-// Login submit
-// =====================
 async function submitPassword() {
   const pw = document.getElementById("password-input").value;
-  const valid = await validatePassword(pw);
-
-  if (!valid) {
-    document.getElementById("error").style.display = "block";
-    return;
-  }
+  if (!(await validatePassword(pw))) return;
 
   localStorage.setItem("panelAuth", pw);
+  history.replaceState({}, "", "?tab=panel");
   loadPanel();
 }
 
-// =====================
-// Panel loader
-// =====================
+// ================= panel =================
 function loadPanel() {
-  const login = document.getElementById("password-screen");
-  const panel = document.getElementById("panel");
-
-  hide(login);
-
-  // slight delay
-  setTimeout(() => {
-    show(panel);
-    fetchBotData();
-    loadGuilds();
-  }, 120);
+  console.log("[panel] load");
+  showPanel("panel");
+  fetchBotData();
+  loadGuilds();
 }
 
-// =====================
-// Fetch bot data (NO validation here)
-// =====================
+// ================= bot =================
 async function fetchBotData() {
   const pw = localStorage.getItem("panelAuth");
   if (!pw) return;
 
-  try {
-    let bot;
-    if (BotData) {
-      bot = BotData;
-    } else {
-      bot = BotData = await fetchAPI(`/api/bot`, pw).then((x) => x.json());
-    }
+  console.log("[bot] fetching");
 
-    // UI fill
-    document.getElementById("bot-name").innerText =
-      bot.user?.tag ?? "Unknown Bot";
-    document.getElementById("bot-desc").innerText =
-      bot.application?.description ?? "No description";
+  BotData = BotData ?? (await fetchAPI("/api/bot", pw).then((r) => r.json()));
 
-    document.getElementById("bot-avatar").src = bot.user.avatar;
+  document.getElementById("bot-name").textContent =
+    BotData.user?.tag ?? "Unknown";
+  document.getElementById("bot-desc").textContent =
+    BotData.application?.description ?? "";
+  document.getElementById("bot-avatar").src = BotData.user.avatar;
 
-    const accent = await extractAccentColor(bot.user.avatar);
-    setAccentColor(accent);
+  extractAccentColor(BotData.user.avatar).then(setAccentColor);
 
-    if (bot.user.banner) {
-      document.getElementById("bot-banner").src = bot.user.banner;
-    } else {
-      const banner = document.createElement("canvas");
-      banner.width = 600;
-      banner.height = 200;
-      const ctx = banner.getContext("2d");
-
-      const grad = ctx.createLinearGradient(0, 0, 600, 200);
-      grad.addColorStop(0, accent);
-      grad.addColorStop(1, "#000");
-
-      ctx.fillStyle = grad;
-      ctx.fillRect(0, 0, 600, 200);
-
-      document.getElementById("bot-banner").src = banner.toDataURL();
-    }
-
-    document.getElementById("invite-btn").onclick = () =>
-      window.open(
-        `https://discord.com/oauth2/authorize?client_id=${bot.user.id}`,
-        "_blank",
-      );
-
-    document.getElementById("guilds").innerText = bot.stats?.guilds ?? 0;
-    document.getElementById("members").innerText = bot.stats?.users ?? 0;
-
-    updateUptime(bot.stats?.uptime ?? 0);
-    document.title = `${bot.user.username} Panel`;
-  } catch {
-    document.getElementById("guilds").innerText = "ERR";
-    document.getElementById("members").innerText = "ERR";
+  if (BotData.user.banner) {
+    document.getElementById("bot-banner").src = BotData.user.banner;
   }
+
+  document.getElementById("guilds").textContent = BotData.stats?.guilds ?? 0;
+  document.getElementById("members").textContent = BotData.stats?.users ?? 0;
+
+  updateUptime(BotData.stats?.uptime ?? 0);
+  document.title = `${BotData.user.username} Panel`;
 }
 
-// =====================
-// Uptime formatter
-// =====================
-function updateUptime(initialMs) {
-  let ms = initialMs;
+// ================= uptime =================
+function updateUptime(ms) {
   const el = document.getElementById("uptime");
 
-  const format = (ms) => {
-    const seconds = ms / 1000;
-    if (seconds < 60) return `${seconds.toFixed(1)}s`;
-
-    const minutes = seconds / 60;
-    if (minutes < 60) return `${minutes.toFixed(1)}m`;
-
-    const hours = minutes / 60;
-    if (hours < 24) return `${hours.toFixed(1)}h`;
-
-    const days = hours / 24;
-    return `${days.toFixed(1)}d`;
+  const fmt = (ms) => {
+    const s = ms / 1000;
+    if (s < 60) return `${s.toFixed(1)}s`;
+    const m = s / 60;
+    if (m < 60) return `${m.toFixed(1)}m`;
+    const h = m / 60;
+    if (h < 24) return `${h.toFixed(1)}h`;
+    return `${(h / 24).toFixed(1)}d`;
   };
+
+  el.textContent = fmt(ms);
 
   setInterval(() => {
     ms += 10_000;
-    el.textContent = format(ms);
+    el.textContent = fmt(ms);
   }, 10_000);
 }
 
-// =====================
-// Guild Pagination
-// =====================
-let currentPage = 1;
-function getGuildsPerPage() {
-  return window.innerWidth <= 900 ? 8 : 9;
+// ================= guilds =================
+function guildsPerPage() {
+  return innerWidth <= 900 ? 8 : 9;
 }
+
 window.addEventListener("resize", () => {
   renderGuildsPage(currentPage);
 });
-function renderGuildsPage(page = 1) {
-  const list = document.getElementById("guild-list");
-  list.innerHTML = "";
 
-  if (!BotGuilds || !BotGuilds.length) return;
-  const perPage = getGuildsPerPage();
-  const totalPages = Math.ceil(BotGuilds.length / perPage);
-
-  // Clamp page: if requested page > totalPages, go to last page
-  currentPage = Math.min(page, totalPages);
-
-  const start = (currentPage - 1) * perPage;
-  const end = start + perPage;
-
-  const pageGuilds = BotGuilds.slice(start, end);
-
-  const template = document.getElementById("guild-card-template");
-
-  for (const g of pageGuilds) {
-    const card = template.content.cloneNode(true);
-
-    const icon = card.querySelector(".guild-icon");
-    const name = card.querySelector(".guild-name");
-    const id = card.querySelector(".guild-id");
-    const btn = card.querySelector(".guild-open");
-
-    icon.src = g.icon ?? "/fallback-guild.png";
-    name.textContent = g.name;
-    id.textContent = g.id;
-    btn.onclick = () => {
-      const searchParams = new URLSearchParams();
-      searchParams.set("tab", "manage-guild");
-      searchParams.set("id", g.id);
-      window.history.pushState({}, "", `?${searchParams.toString()}`);
-      openGuildPanel(g);
-    };
-
-    list.appendChild(card);
-  }
-
-  renderGuildPaginationControls();
-}
-
-function renderGuildPaginationControls() {
-  const containerId = "guild-pagination";
-  let container = document.getElementById(containerId);
-  if (!container) {
-    container = document.createElement("div");
-    container.id = containerId;
-    container.style.display = "flex";
-    container.style.justifyContent = "center";
-    container.style.gap = "12px";
-    container.style.marginTop = "16px";
-    document.getElementById("panel").appendChild(container);
-  }
-
-  container.innerHTML = "";
-
-  const totalPages = Math.ceil(BotGuilds.length / getGuildsPerPage());
-
-  if (totalPages <= 1) return;
-
-  const prevBtn = document.createElement("button");
-  prevBtn.textContent = "◀ Previous";
-  prevBtn.disabled = currentPage === 1;
-  prevBtn.onclick = () => {
-    currentPage--;
-    renderGuildsPage(currentPage);
-  };
-
-  const nextBtn = document.createElement("button");
-  nextBtn.textContent = "Next ▶";
-  nextBtn.disabled = currentPage === totalPages;
-  nextBtn.onclick = () => {
-    currentPage++;
-    renderGuildsPage(currentPage);
-  };
-
-  const pageIndicator = document.createElement("span");
-  pageIndicator.textContent = `Page ${currentPage} / ${totalPages}`;
-  pageIndicator.style.alignSelf = "center";
-  pageIndicator.style.color = "var(--text-sub)";
-  pageIndicator.style.fontSize = "0.9rem";
-
-  container.appendChild(prevBtn);
-  container.appendChild(pageIndicator);
-  container.appendChild(nextBtn);
-}
-
-// =====================
-// Fetch bot guilds
-// =====================
 async function loadGuilds() {
   const pw = localStorage.getItem("panelAuth");
   if (!pw) return;
 
-  if (!BotGuilds) {
-    BotGuilds = await fetchAPI(`/api/guilds`, pw).then((x) => x.json());
-  }
+  console.log("[guilds] fetching");
 
-  currentPage = 1;
+  BotGuilds =
+    BotGuilds ?? (await fetchAPI("/api/guilds", pw).then((r) => r.json()));
+
   renderGuildsPage(currentPage);
 }
-// =====================
-// Show the guild info
-// =====================
-function openGuildPanel(guild) {
-  // hide main panel
-  hide(document.getElementById("panel"));
 
-  // show guild panel
-  const guildPanel = document.getElementById("guild-panel");
-  show(guildPanel);
+function renderGuildsPage(page) {
+  const list = document.getElementById("guild-list");
+  if (!list || !BotGuilds) return;
 
-  document.getElementById("guild-name-header").textContent = guild.name;
-  document.getElementById("guild-id-header").textContent = `ID: ${guild.id}`;
+  list.innerHTML = "";
 
-  const content = document.getElementById("guild-content");
-  content.innerHTML = `<p>Loading data for <strong>${guild.name}</strong>...</p>`;
+  const perPage = guildsPerPage();
+  const pages = Math.ceil(BotGuilds.length / perPage);
+  currentPage = Math.min(Math.max(page, 1), pages);
+
+  const start = (currentPage - 1) * perPage;
+  const slice = BotGuilds.slice(start, start + perPage);
+
+  const tpl = document.getElementById("guild-card-template");
+
+  for (const g of slice) {
+    const node = tpl.content.cloneNode(true);
+    node.querySelector(".guild-icon").src = g.icon ?? "/fallback-guild.png";
+    node.querySelector(".guild-name").textContent = g.name;
+    node.querySelector(".guild-id").textContent = g.id;
+    node.querySelector(".guild-open").onclick = () => openGuild(g);
+    list.appendChild(node);
+  }
+
+  renderPaginationControls(pages);
+}
+
+function renderPaginationControls(pages) {
+  let c = document.getElementById("guild-pagination");
+  if (!c) {
+    c = document.createElement("div");
+    c.id = "guild-pagination";
+    c.className = "flex justify-center gap-3 mt-4";
+    document.getElementById("panel").appendChild(c);
+  }
+
+  c.innerHTML = "";
+  if (pages <= 1) return;
+
+  const btn = (t, d, fn) => {
+    const b = document.createElement("button");
+    b.textContent = t;
+    b.disabled = d;
+    b.onclick = fn;
+    b.className = "px-3 py-1 rounded-lg bg-white/10 disabled:opacity-40";
+    return b;
+  };
+
+  c.append(
+    btn("◀", currentPage === 1, () => renderGuildsPage(--currentPage)),
+    document.createTextNode(` Page ${currentPage}/${pages} `),
+    btn("▶", currentPage === pages, () => renderGuildsPage(++currentPage)),
+  );
+}
+
+// ================= guild panel =================
+function openGuild(g, push = true) {
+  console.log("[guild] open", g.id);
+
+  if (push) {
+    history.pushState({}, "", `?tab=manage-guild&id=${g.id}`);
+  }
+
+  showPanel("guild");
+
+  document.getElementById("guild-name-header").textContent = g.name;
+  document.getElementById("guild-id-header").textContent = `ID: ${g.id}`;
+
+  const icon = document.getElementById("guild-icon");
+  icon.src = g.icon ?? "/fallback-guild.png";
+  extractAccentColor(icon.src).then(setAccentColor);
 
   const pw = localStorage.getItem("panelAuth");
-  fetchAPI(`/api/guild/${guild.id}`, pw)
-    .then((res) => res.json())
-    .then((data) => {
-      content.innerHTML = `
-        <p><strong>Guild Name:</strong> ${data.name}</p>
-        <p><strong>Members:</strong> ${data.count.members ?? 0}</p>
-        <p><strong>Channels:</strong> ${data.count.channels ?? 0}</p>
-      `;
-    })
-    .catch((err) => {
-      content.innerHTML = `<p style="color:red;">Failed to load guild data.</p>`;
+  const content = document.getElementById("guild-content");
+  content.textContent = "Loading…";
+
+  fetchAPI(`/api/guild/${g.id}`, pw)
+    .then((r) => r.json())
+    .then((d) => {
+      const tpl = document.getElementById("guild-info-template");
+      const node = tpl.content.cloneNode(true);
+
+      if (d.banner) document.getElementById("guild-banner").src = g.banner;
+      else document.getElementById("guild-banner").classList.add("hidden");
+
+      node.querySelector("[data-members]").textContent = d.count?.members ?? 0;
+      node.querySelector("[data-channels]").textContent =
+        d.count?.channels ?? 0;
+      node.querySelector("[data-roles]").textContent = d.count?.roles ?? 0;
+      node.querySelector("[data-emojis]").textContent = d.count?.emojis ?? 0;
+
+      node.querySelector("[data-created]").textContent = d.dates?.created
+        ? new Date(d.dates.created).toLocaleDateString()
+        : "Unknown";
+
+      node.querySelector("[data-joined]").textContent = d.dates?.joined
+        ? new Date(d.dates.joined).toLocaleDateString()
+        : "Unknown";
+      node.querySelector("[data-owner-btn]").onclick = () =>
+        openUserPanel(d.owner.id);
+
+      node.querySelector("[data-leave-btn]").onclick = async () => {
+        if (!confirm(`Leave ${g.name}?`)) return;
+        await fetchAPI(`/api/guild/${g.id}`, pw, "DELETE");
+        history.replaceState({}, "", "?tab=panel");
+        loadPanel();
+      };
+
+      content.innerHTML = "";
+      content.appendChild(node);
     });
 }
 
-document.getElementById("back-btn").onclick = () => {
-  const url = new URL(window.location);
-  url.searchParams.set("tab", "panel");
-  window.history.pushState({}, "", url);
+// ================= user panel =================
+function openUserPanel(id, push = true) {
+  console.log("[user] open", id);
 
-  hide(document.getElementById("guild-panel"));
-  show(document.getElementById("panel"));
-};
+  if (push) {
+    history.pushState({}, "", `?tab=view-user&id=${id}`);
+  }
 
-// =====================
-// On load
-// =====================
-window.onload = async () => {
-  const login = document.getElementById("password-screen");
-  show(login);
+  showPanel("user");
+
+  const content = document.getElementById("user-content");
+  content.textContent = "Loading…";
 
   const pw = localStorage.getItem("panelAuth");
-  if (!pw) return;
 
-  const valid = await validatePassword(pw);
-  if (!valid) {
-    localStorage.removeItem("panelAuth");
+  fetchAPI(`/api/user/${id}?mutualGuilds=true`, pw)
+    .then((r) => r.json())
+    .then((u) => {
+      extractAccentColor(u.avatar).then(setAccentColor);
+
+      document.getElementById("user-avatar").src = u.avatar;
+      if (u.banner) document.getElementById("user-banner").src = u.banner;
+      else document.getElementById("user-banner").classList.add("hidden");
+      document.getElementById("user-id").textContent = `ID: ${u.id}`;
+      document.getElementById("user-name").textContent = !u.bot
+        ? `@${u.username}`
+        : u.tag;
+
+      const tpl = document.getElementById("user-info-template");
+      const node = tpl.content.cloneNode(true);
+
+      node.querySelector("[data-created]").textContent = new Date(
+        u.createdTimestamp,
+      ).toLocaleDateString();
+
+      node.querySelector("[data-bot]").textContent = u.bot ? "Yes" : "No";
+
+      node.querySelector("[data-guilds]").innerHTML =
+        u.mutualGuilds
+          .slice(0, 2)
+          .map(
+            (g) =>
+              `<span><img style="display:inline-block;aspect-ratio: 1/1;height:1em;border-radius:25%;" alt="${g.name}" src="${g.icon ?? "./fallback-guild.png"}" /> ${g.name} </span>`,
+          )
+          .join("<br>") ?? "No Mutual Guilds";
+      node.querySelector("[data-flags]").textContent =
+        u.flags && u.flags.length ? u.flags.join(", ") : "-";
+
+      content.innerHTML = "";
+      content.appendChild(node);
+    });
+}
+
+// ================= history =================
+window.addEventListener("popstate", () => {
+  const q = new URLSearchParams(location.search);
+
+  if (q.get("tab") === "manage-guild") {
+    const g = BotGuilds?.find((x) => x.id === q.get("id"));
+    if (g) return openGuild(g, false);
+  }
+
+  if (q.get("tab") === "view-user") {
+    return openUserPanel(q.get("id"), false);
+  }
+
+  loadPanel();
+});
+
+// ================= back btn =================
+if (document.getElementById("guild-back-btn"))
+  document.getElementById("guild-back-btn").onclick = () => loadPanel();
+if (document.getElementById("user-back-btn"))
+  document.getElementById("user-back-btn").onclick = () => loadPanel();
+
+// ================= boot =================
+window.onload = async () => {
+  const pw = localStorage.getItem("panelAuth");
+  if (!pw || !(await validatePassword(pw))) {
+    showPanel("login");
     return;
   }
 
-  const params = new URLSearchParams(window.location.search);
-  const tab = params.get("tab");
+  const q = new URLSearchParams(location.search);
 
-  if (tab === "manage-guild" && params.get("id")) {
-    loadPanel(); // still need bot data for sidebar/stats
-    const guild = BotGuilds?.find((g) => g.id === params.get("id"));
-    if (guild) openGuildPanel(guild);
-  } else {
-    loadPanel();
+  if (q.get("tab") === "manage-guild") {
+    await loadGuilds();
+    const g = BotGuilds?.find((x) => x.id === q.get("id"));
+    if (g) return openGuild(g, false);
   }
+
+  if (q.get("tab") === "view-user") {
+    return openUserPanel(q.get("id"), false);
+  }
+
+  loadPanel();
 };

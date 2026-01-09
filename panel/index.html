@@ -5,91 +5,318 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Bot Panel</title>
     <link rel="stylesheet" href="style.css" />
+    <!-- Tailwind CDN -->
+    <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
   </head>
-  <body>
+
+  <body
+    class="min-h-screen flex items-center justify-center p-6 text-white overflow-hidden"
+  >
     <!-- LOGIN -->
-    <div id="password-screen" class="center glass login">
-      <h1 class="title">Sign In</h1>
-      <input type="password" id="password-input" placeholder="Panel password" />
-      <button onclick="submitPassword()">Continue</button>
-      <p id="error" class="error">Incorrect password</p>
+    <div
+      id="password-screen"
+      class="hidden opacity-0 scale-95 transition-all duration-300 w-full max-w-sm rounded-2xl p-6 backdrop-blur-xl bg-white/10 border border-white/20 flex flex-col gap-4"
+    >
+      <h1 class="text-center text-xl font-semibold">Sign In</h1>
+
+      <input
+        id="password-input"
+        type="password"
+        placeholder="Panel password"
+        class="w-full rounded-xl px-4 py-3 bg-black/40 border border-white/20 focus:outline-none focus:border-[rgba(var(--accent-rgb),0.8)]"
+      />
+
+      <button
+        onclick="submitPassword()"
+        class="rounded-xl py-3 font-semibold transition hover:-translate-y-0.5"
+        style="
+          background: rgb(var(--accent-rgb));
+          box-shadow: 0 0 0 1px rgba(var(--accent-rgb), 0.6);
+        "
+      >
+        Continue
+      </button>
+
+      <p id="error" class="hidden text-center text-red-400 text-sm">
+        Incorrect password
+      </p>
     </div>
 
     <!-- PANEL -->
-    <div id="panel" class="center glass panel">
-      <div class="panel-grid">
+    <div
+      id="panel"
+      class="hidden opacity-0 scale-95 transition-all duration-300 w-full max-w-5xl rounded-2xl p-6 backdrop-blur-xl bg-white/10 border border-white/20 flex flex-col gap-6 scrollbar-hide overflow-y-auto max-h-[85vh]"
+    >
+      <!-- TOP GRID -->
+      <div class="grid grid-cols-1 lg:grid-cols-[1.6fr_1fr] gap-6">
         <!-- LEFT -->
-        <section class="panel-main glass-sub">
-          <img class="banner" id="bot-banner" />
-          <img class="avatar" id="bot-avatar" />
+        <section
+          class="relative rounded-2xl p-5 text-center bg-black/40 border border-white/20"
+        >
+          <img
+            id="bot-banner"
+            class="w-full h-40 object-cover rounded-xl opacity-90 bg-gradient-to-r from-[rgb(var(--accent-rgb))] to-black"
+          />
 
-          <h2 id="bot-name">Loading…</h2>
-          <p id="bot-desc"></p>
+          <img
+            id="bot-avatar"
+            class="absolute left-1/2 -translate-x-1/2 top-[120px] w-24 h-24 rounded-full border-2 border-white/20 bg-black"
+          />
+
+          <h2 id="bot-name" class="mt-14 text-lg font-semibold">Loading…</h2>
+          <p id="bot-desc" class="text-sm text-white/70"></p>
         </section>
 
         <!-- RIGHT -->
-        <aside class="panel-side glass-sub">
-          <button id="invite-btn">Invite to Discord</button>
-          <button class="secondary" onclick="logout()">Log out</button>
+        <aside
+          class="rounded-2xl p-5 flex flex-col gap-4 justify-center bg-black/40 border border-white/20"
+        >
+          <button
+            id="invite-btn"
+            class="rounded-xl py-3 font-semibold transition hover:-translate-y-0.5"
+            style="
+              background: rgb(var(--accent-rgb));
+              box-shadow: 0 0 0 1px rgba(var(--accent-rgb), 0.6);
+            "
+          >
+            Invite to Discord
+          </button>
+
+          <button
+            onclick="logout()"
+            class="rounded-xl py-3 bg-white/10 border border-white/20"
+          >
+            Log out
+          </button>
         </aside>
       </div>
 
       <!-- STATS -->
-      <div class="stats glass-sub">
-        <div>
-          <span id="guilds">0</span>
-          <label>Guilds</label>
+      <div
+        class="rounded-2xl p-4 flex justify-around bg-black/40 border border-white/20"
+      >
+        <div class="text-center">
+          <span id="guilds" class="font-bold text-lg">0</span>
+          <div class="text-xs text-white/60">Guilds</div>
         </div>
-        <div>
-          <span id="members">0</span>
-          <label>Members</label>
+        <div class="text-center">
+          <span id="members" class="font-bold text-lg">0</span>
+          <div class="text-xs text-white/60">Members</div>
         </div>
-        <div>
-          <span id="uptime">0s</span>
-          <label>Uptime</label>
+        <div class="text-center">
+          <span id="uptime" class="font-bold text-lg">0s</span>
+          <div class="text-xs text-white/60">Uptime</div>
         </div>
       </div>
 
-      <header class="panel-header">
-        <h2>Your Servers</h2>
-        <span class="muted">Select a guild to manage</span>
+      <!-- GUILD HEADER -->
+      <header class="flex flex-col gap-1">
+        <h2 class="text-lg font-semibold">Bot Servers</h2>
+        <span class="text-sm text-white/60"> Select a guild to manage </span>
       </header>
 
-      <div id="guild-list" class="guild-list">
-        <!-- guild cards injected here -->
-      </div>
+      <!-- GUILD LIST -->
+      <div
+        id="guild-list"
+        class="grid grid-cols-[repeat(auto-fill,minmax(260px,1fr))] gap-3"
+      ></div>
+
+      <!-- TEMPLATE -->
       <template id="guild-card-template">
-        <div class="guild-card">
-          <img class="guild-icon" />
-          <div class="guild-info">
-            <span class="guild-name"></span>
-            <span class="guild-id muted"></span>
+        <div
+          class="flex items-center gap-3 p-3 rounded-xl bg-white/5 border border-white/10 transition hover:-translate-y-0.5"
+          style="border-color: rgba(var(--accent-rgb), 0.35)"
+        >
+          <img class="guild-icon w-10 h-10 rounded-lg bg-white/10" />
+
+          <div class="flex-1 flex flex-col">
+            <span class="guild-name font-semibold"></span>
+            <span class="guild-id text-xs text-white/50"></span>
           </div>
-          <button class="guild-open">Open</button>
+
+          <button
+            class="guild-open px-3 py-1 rounded-lg text-sm transition"
+            style="
+              color: rgb(var(--accent-rgb));
+              box-shadow: inset 0 0 0 1px rgba(var(--accent-rgb), 0.5);
+            "
+          >
+            Open
+          </button>
+        </div>
+      </template>
+    </div>
+    <div
+      id="guild-panel"
+      class="hidden opacity-0 scale-95 transition-all duration-300 w-full max-w-5xl rounded-2xl p-0 backdrop-blur-xl bg-white/10 border border-white/20 flex flex-col gap-6 scrollbar-hide overflow-y-auto max-h-[85vh]"
+    >
+      <!-- Header -->
+      <div
+        id="guild-header"
+        class="relative w-full h-40 rounded-t-2xl overflow-hidden bg-gradient-to-r from-[rgb(var(--accent-rgb))] to-black"
+      >
+        <img
+          id="guild-banner"
+          class="absolute inset-0 w-full h-full object-cover"
+          src=""
+          alt="Guild Banner"
+        />
+
+        <div
+          class="absolute z-1 left-6 top-1/2 -translate-y-1/2 flex items-center gap-4"
+        >
+          <img
+            id="guild-icon"
+            class="w-24 h-24 rounded-2xl border-4 border-white/20 object-cover bg-black"
+            src=""
+            alt="Guild Icon"
+          />
+          <div class="text-white/90">
+            <h2 id="guild-name-header" class="text-2xl font-bold">
+              Guild Name
+            </h2>
+            <p id="guild-id-header" class="text-sm text-white/60">
+              ID: 0000000000
+            </p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Content -->
+      <div class="mt-auto glass-sub p-6 text-sm text-white/80">
+        <div
+          id="guild-content"
+          style="padding: 0"
+          class="scrollbar-hide overflow-y-auto max-h-[85vh]"
+        >
+          Loading…
+        </div>
+      </div>
+
+      <!-- Back button -->
+      <div class="p-4">
+        <button
+          id="guild-back-btn"
+          class="px-4 py-2 rounded-xl bg-white/10 hover:bg-white/20 transition"
+        >
+          ← Back
+        </button>
+      </div>
+      <template id="guild-info-template">
+        <div class="flex flex-col gap-6">
+          <!-- Top stats -->
+          <div class="grid grid-cols-2 sm:grid-cols-4 gap-4">
+            <div class="glass-sub p-4 rounded-xl text-center">
+              <div class="text-xl font-semibold" data-members>0</div>
+              <div class="text-xs text-white/60">Members</div>
+            </div>
+            <div class="glass-sub p-4 rounded-xl text-center">
+              <div class="text-xl font-semibold" data-channels>0</div>
+              <div class="text-xs text-white/60">Channels</div>
+            </div>
+            <div class="glass-sub p-4 rounded-xl text-center">
+              <div class="text-xl font-semibold" data-roles>0</div>
+              <div class="text-xs text-white/60">Roles</div>
+            </div>
+            <div class="glass-sub p-4 rounded-xl text-center">
+              <div class="text-xl font-semibold" data-emojis>0</div>
+              <div class="text-xs text-white/60">Emojis</div>
+            </div>
+          </div>
+
+          <!-- Meta info -->
+          <div
+            class="glass-sub p-5 rounded-xl text-sm text-white/80 flex flex-col gap-2"
+          >
+            <div><b>Created:</b> <span data-created></span></div>
+            <div><b>Joined:</b> <span data-joined></span></div>
+          </div>
+
+          <!-- Actions -->
+          <div class="flex gap-3 flex-wrap">
+            <button
+              data-owner-btn
+              class="px-3 py-1 hover:-translate-y-0.5 rounded-lg text-sm transition"
+              style="
+                color: rgb(var(--accent-rgb));
+                box-shadow: inset 0 0 0 1px rgba(var(--accent-rgb), 0.5);
+              "
+            >
+              View Owner
+            </button>
+            <button
+              data-leave-btn
+              class="px-4 py-2 rounded-xl bg-red-500/20 hover:-translate-y-0.5 hover:bg-red-500/30 text-red-300 transition"
+            >
+              Leave Guild
+            </button>
+          </div>
         </div>
       </template>
     </div>
 
-    <!-- GUILD PANEL -->
     <div
-      id="guild-panel"
-      class="center glass"
-      style="display: none; flex-direction: column"
+      id="user-panel"
+      class="hidden opacity-0 scale-95 transition-all duration-300 w-full max-w-4xl rounded-2xl p-6 backdrop-blur-xl bg-white/10 border border-white/20 flex flex-col gap-6 scrollbar-hide overflow-y-auto max-h-[85vh]"
     >
-      <button
-        id="back-btn"
-        class="secondary"
-        style="align-self: flex-start; margin-bottom: 16px"
+      <!-- Header -->
+      <div
+        class="flex items-center justify-between relative p-[1em] w-full rounded-2xl overflow-hidden bg-gradient-to-r from-[rgb(var(--accent-rgb))] to-black"
       >
-        ← Back
-      </button>
-      <h2 id="guild-name-header">Guild Name</h2>
-      <p id="guild-id-header"></p>
+        <img
+          id="user-banner"
+          class="absolute inset-0 w-full h-full object-cover"
+          src=""
+          alt="User Banner"
+        />
+        <div class="flex z-1 items-center gap-4">
+          <img
+            id="user-avatar"
+            class="w-20 h-20 rounded-2xl border-4 border-white/20 object-cover bg-black"
+            src=""
+            alt="User Avatar"
+          />
+          <div>
+            <h2 id="user-name" class="text-xl font-semibold">User</h2>
+            <p id="user-id" class="text-sm text-white/60">ID: 000000000</p>
+          </div>
+        </div>
 
-      <div id="guild-content" style="margin-top: 20px">
-        <!-- Guild management content injected here -->
-        <p>Loading guild data...</p>
+        <button
+          id="user-back-btn"
+          class="px-4 py-2 rounded-xl bg-white/10 hover:bg-white/20 transition"
+        >
+          ← Back
+        </button>
       </div>
+
+      <div class="h-px bg-white/10"></div>
+
+      <!-- Content -->
+      <div id="user-content" class="flex flex-col gap-6 text-sm text-white/80">
+        Loading…
+      </div>
+
+      <template id="user-info-template">
+        <div class="grid grid-cols-2 sm:grid-cols-4 gap-4">
+          <div class="glass-sub p-4 rounded-xl text-center">
+            <div class="text-lg font-semibold" data-created></div>
+            <div class="text-xs text-white/60">Account Created</div>
+          </div>
+          <div class="glass-sub p-4 rounded-xl text-center">
+            <div class="text-lg font-semibold" data-bot></div>
+            <div class="text-xs text-white/60">Bot</div>
+          </div>
+          <div class="glass-sub p-4 rounded-xl text-center">
+            <div class="text-lg font-semibold" data-guilds></div>
+            <div class="text-xs text-white/60">Shared Guilds</div>
+          </div>
+          <div class="glass-sub p-4 rounded-xl text-center">
+            <div class="text-lg font-semibold" data-flags></div>
+            <div class="text-xs text-white/60">Flags</div>
+          </div>
+        </div>
+      </template>
     </div>
 
     <script src="script.js"></script>
