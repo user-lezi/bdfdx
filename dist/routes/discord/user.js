@@ -7,6 +7,7 @@ exports.default = (0, apiRoute_1.createAPIRoute)({
         methods: ["get"],
         summary: "Fetch Discord user profile",
         description: "Fetches a user's public Discord profile and can optionally include mutual guilds or the raw Discord.js user object.",
+        category: "discord",
         tags: ["discord", "user"],
         params: {
             id: {

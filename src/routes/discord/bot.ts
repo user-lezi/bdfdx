@@ -9,7 +9,7 @@ export default createAPIRoute({
     summary: "Fetch bot information",
     description:
       "Returns public bot identity, application metadata, runtime statistics, and environment information.",
-
+    category: "discord",
     tags: ["discord", "bot", "utility"],
 
     exampleData: [

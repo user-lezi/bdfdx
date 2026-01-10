@@ -8,7 +8,7 @@ export default createAPIRoute({
     summary: "Fetch guild members",
     description:
       "Returns members of a guild with optional filtering, sorting, and force-fetching from the Discord API.",
-
+    category: "discord",
     tags: ["discord", "guild", "member"],
 
     params: {

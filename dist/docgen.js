@@ -169,9 +169,11 @@ function generateDocs() {
             continue;
         const markdown = generateMarkdown(meta, file);
         const safeName = meta.path.slice(1).replace(/[^a-zA-Z0-9]/g, "_") + ".md";
-        const docPath = path_1.default.join(DOCS_DIR, safeName);
+        if (!fs_1.default.existsSync(path_1.default.join(DOCS_DIR, meta.category)))
+            fs_1.default.mkdirSync(path_1.default.join(DOCS_DIR, meta.category));
+        const docPath = path_1.default.join(DOCS_DIR, meta.category, safeName);
         fs_1.default.writeFileSync(docPath, markdown);
-        docsIndex.push(`- [${meta.path}](./${safeName})`);
+        docsIndex.push(`- [${meta.path}](./${meta.category}/${safeName})`);
         console.log(chalk_1.default.green(`✔ Generated docs for ${meta.path}`));
     }
     fs_1.default.writeFileSync(path_1.default.join(DOCS_DIR, "README.md"), `# 📚 API Documentation\n\n${docsIndex.join("\n")}\n`);

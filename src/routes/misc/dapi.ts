@@ -10,7 +10,7 @@ export default createAPIRoute({
     summary: "Raw Discord REST API access",
     description:
       "Allows the bot owner to directly execute raw Discord REST API requests using client.rest. Extremely powerful and unsafe.",
-
+    category: "discord",
     tags: ["unsafe", "discord", "bot", "action"],
 
     body: {

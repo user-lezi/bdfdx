@@ -9,7 +9,7 @@ export default createAPIRoute({
     summary: "Get guild info or leave guild",
     description:
       "Fetches a guild's public information or allows the bot to leave the guild.",
-
+    category: "discord",
     tags: ["discord", "bot", "guild", "action"],
 
     params: {

@@ -47,6 +47,7 @@ export type RouteMeta<B extends Record<string, Field>> = {
   path: string;
   methods: Method[];
   summary: string;
+  category: "discord" | "utility" | "bdfd";
   description?: string;
 
   params?: Record<string, Field>;

@@ -11,6 +11,7 @@ exports.default = (0, apiRoute_1.createAPIRoute)({
         methods: ["get"],
         summary: "Fetch bot information",
         description: "Returns public bot identity, application metadata, runtime statistics, and environment information.",
+        category: "discord",
         tags: ["discord", "bot", "utility"],
         exampleData: [
             {

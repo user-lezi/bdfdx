@@ -196,10 +196,11 @@ function generateDocs() {
 
     const markdown = generateMarkdown(meta, file);
     const safeName = meta.path.slice(1).replace(/[^a-zA-Z0-9]/g, "_") + ".md";
-    const docPath = path.join(DOCS_DIR, safeName);
-
+    if (!fs.existsSync(path.join(DOCS_DIR, meta.category)))
+      fs.mkdirSync(path.join(DOCS_DIR, meta.category));
+    const docPath = path.join(DOCS_DIR, meta.category, safeName);
     fs.writeFileSync(docPath, markdown);
-    docsIndex.push(`- [${meta.path}](./${safeName})`);
+    docsIndex.push(`- [${meta.path}](./${meta.category}/${safeName})`);
     console.log(chalk.green(`✔ Generated docs for ${meta.path}`));
   }
 

@@ -7,6 +7,7 @@ exports.default = (0, apiRoute_1.createAPIRoute)({
         methods: ["get", "delete"],
         summary: "Get guild info or leave guild",
         description: "Fetches a guild's public information or allows the bot to leave the guild.",
+        category: "discord",
         tags: ["discord", "bot", "guild", "action"],
         params: {
             id: {

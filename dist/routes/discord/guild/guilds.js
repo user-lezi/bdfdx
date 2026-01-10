@@ -7,6 +7,7 @@ exports.default = (0, apiRoute_1.createAPIRoute)({
         methods: ["get"],
         summary: "List bot guilds",
         description: "Returns a list of guilds the bot is currently in.",
+        category: "discord",
         tags: ["discord", "bot", "guild"],
         query: {
             sort: {
