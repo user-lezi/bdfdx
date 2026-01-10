@@ -1,7 +1,7 @@
 # 📘 /api/guild/:id
-> Fetches a guild's public information and optionally returns more detailed metadata.
+> Fetches a guild's public information or makes the bot leave the guild.
 
-**🛠 Methods:** `GET`
+**🛠 Methods:** `GET`, `DELETE`
 **📁 Source:** `\dist\routes\discord\guild\guild.js`
 
 ### 🧪 Example  

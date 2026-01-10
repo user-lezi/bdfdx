@@ -3,9 +3,9 @@ import { createAPIRoute } from "../../../apiRoute";
 
 export default createAPIRoute({
   path: "/guild/:id",
-  methods: ["get"],
+  methods: ["get", "delete"],
   description:
-    "Fetches a guild's public information and optionally returns more detailed metadata.",
+    "Fetches a guild's public information or makes the bot leave the guild.",
 
   query: {
     fetch: "Force refetch from API instead of cache (true/false)",
@@ -25,7 +25,7 @@ export default createAPIRoute({
     let guild: Guild;
     try {
       guild = ctx.client.guilds.cache.get(id)!;
-      if (fetchFresh) guild = await guild?.fetch();
+      if (fetchFresh) guild = await guild.fetch();
       if (!guild) throw Error();
     } catch {
       return ctx.res.status(404).json({
@@ -33,24 +33,51 @@ export default createAPIRoute({
         code: 404,
       });
     }
-    // Owner
-    let owner = await guild.fetchOwner({ cache: true });
 
-    // Base guild JSON
+    // =====================
+    // DELETE → Leave guild
+    // =====================
+    if (ctx.req.method === "DELETE") {
+      try {
+        await guild.leave();
+
+        return ctx.res.json({
+          success: true,
+          message: "Bot left the guild",
+          id: guild.id,
+        });
+      } catch (err) {
+        return ctx.res.status(500).json({
+          error: "Failed to leave guild",
+          code: 500,
+        });
+      }
+    }
+
+    // =====================
+    // GET → Guild info
+    // =====================
+
+    // Owner
+    const owner = await guild.fetchOwner({ cache: true });
+
     const guildJSON: any = {
       id: guild.id,
       name: guild.name,
       description: guild.description ?? null,
+
       owner: {
         id: owner.id,
         username: owner.user.username,
         name: owner.user.displayName,
         icon: owner.user.displayAvatarURL({ size: 1024 }),
       },
+
       dates: {
         created: guild.createdTimestamp,
         joined: guild.joinedTimestamp,
       },
+
       nsfwLevel: guild.nsfwLevel,
       features: guild.features,
 
@@ -69,7 +96,6 @@ export default createAPIRoute({
       },
     };
 
-    // Optional: raw (entire guild object)
     if (includeRaw) {
       guildJSON.raw = guild;
     }
