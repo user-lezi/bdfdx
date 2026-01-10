@@ -101,9 +101,7 @@ export function createAPIRoute<B extends Record<string, Field>>(data: {
             data.callback({ client, req, res, next }),
         );
 
-        console.log(
-          chalk.green(`✔ [${method.toUpperCase()}] ${runtimePath}`),
-        );
+        console.log(chalk.green(`✔ [${method.toUpperCase()}] ${runtimePath}`));
       }
     },
   };
