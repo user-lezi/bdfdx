@@ -2,7 +2,7 @@ import { createAPIRoute } from "../../../apiRoute";
 
 export default createAPIRoute({
   meta: {
-    path: "/guild/:id/members",
+    path: "/guild/:guildId/members",
     methods: ["get"],
 
     summary: "Fetch guild members",
@@ -12,7 +12,7 @@ export default createAPIRoute({
     tags: ["discord", "guild", "member"],
 
     params: {
-      id: {
+      guildId: {
         type: "string",
         description: "The ID of the guild whose members are being fetched.",
         required: true,
@@ -75,7 +75,7 @@ export default createAPIRoute({
   },
 
   async callback(ctx) {
-    const guildId = ctx.req.params.id;
+    const guildId = ctx.req.params.guildId;
     const fetch = ctx.req.query.fetch === "true";
     const type = (ctx.req.query.type as string) || "all";
     const sort = ctx.req.query.sort as string | undefined;

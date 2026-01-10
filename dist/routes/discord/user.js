@@ -3,14 +3,14 @@ Object.defineProperty(exports, "__esModule", { value: true });
 const apiRoute_1 = require("../../apiRoute");
 exports.default = (0, apiRoute_1.createAPIRoute)({
     meta: {
-        path: "/user/:id",
+        path: "/user/:userId",
         methods: ["get"],
         summary: "Fetch Discord user profile",
         description: "Fetches a user's public Discord profile and can optionally include mutual guilds or the raw Discord.js user object.",
         category: "discord",
         tags: ["discord", "user"],
         params: {
-            id: {
+            userId: {
                 type: "string",
                 required: true,
                 description: "Discord user ID",
@@ -65,7 +65,7 @@ exports.default = (0, apiRoute_1.createAPIRoute)({
         ],
     },
     async callback(ctx) {
-        const id = ctx.req.params.id;
+        const id = ctx.req.params.userId;
         const q = ctx.req.query;
         const fetchFresh = q.fetch === "true";
         const includeMutual = q.mutualGuilds === "true";

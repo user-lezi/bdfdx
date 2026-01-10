@@ -3,14 +3,14 @@ Object.defineProperty(exports, "__esModule", { value: true });
 const apiRoute_1 = require("../../../apiRoute");
 exports.default = (0, apiRoute_1.createAPIRoute)({
     meta: {
-        path: "/guild/:id",
+        path: "/guild/:guildId",
         methods: ["get", "delete"],
         summary: "Get guild info or leave guild",
         description: "Fetches a guild's public information or allows the bot to leave the guild.",
         category: "discord",
         tags: ["discord", "bot", "guild", "action"],
         params: {
-            id: {
+            guildId: {
                 type: "string",
                 description: "The ID of the guild",
                 required: true,
@@ -67,7 +67,7 @@ exports.default = (0, apiRoute_1.createAPIRoute)({
         ],
     },
     async callback(ctx) {
-        const id = ctx.req.params.id;
+        const id = ctx.req.params.guildId;
         const q = ctx.req.query;
         const fetchFresh = q.fetch === "true";
         const includeRaw = q.raw === "true";

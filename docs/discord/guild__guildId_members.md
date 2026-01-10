@@ -1,4 +1,4 @@
-# 📘 /guild/:id/members
+# 📘 /guild/:guildId/members
 
 > Fetch guild members
 
@@ -11,7 +11,7 @@ Returns members of a guild with optional filtering, sorting, and force-fetching 
 ### 📌 URL Parameters
 | Name | Type | Required | Description | Example |
 |------|------|---------|-------------|--------|
-| `id` | string | ✅ | The ID of the guild whose members are being fetched. | `"123456789012345678"` |
+| `guildId` | string | ✅ | The ID of the guild whose members are being fetched. | `"123456789012345678"` |
 
 ### 🔍 Query Parameters
 | Name | Type | Required | Description | Example |

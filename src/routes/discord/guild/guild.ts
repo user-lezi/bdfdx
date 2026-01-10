@@ -3,7 +3,7 @@ import { createAPIRoute } from "../../../apiRoute";
 
 export default createAPIRoute({
   meta: {
-    path: "/guild/:id",
+    path: "/guild/:guildId",
     methods: ["get", "delete"],
 
     summary: "Get guild info or leave guild",
@@ -13,7 +13,7 @@ export default createAPIRoute({
     tags: ["discord", "bot", "guild", "action"],
 
     params: {
-      id: {
+      guildId: {
         type: "string",
         description: "The ID of the guild",
         required: true,
@@ -73,7 +73,7 @@ export default createAPIRoute({
   },
 
   async callback(ctx) {
-    const id = ctx.req.params.id;
+    const id = ctx.req.params.guildId;
     const q = ctx.req.query;
 
     const fetchFresh = q.fetch === "true";

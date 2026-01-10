@@ -1,4 +1,4 @@
-# 📘 /guild/:id
+# 📘 /guild/:guildId
 
 > Get guild info or leave guild
 
@@ -11,7 +11,7 @@ Fetches a guild's public information or allows the bot to leave the guild.
 ### 📌 URL Parameters
 | Name | Type | Required | Description | Example |
 |------|------|---------|-------------|--------|
-| `id` | string | ✅ | The ID of the guild | `"123456789012345678"` |
+| `guildId` | string | ✅ | The ID of the guild | `"123456789012345678"` |
 
 ### 🔍 Query Parameters
 | Name | Type | Required | Description | Example |

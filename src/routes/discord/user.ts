@@ -2,7 +2,7 @@ import { createAPIRoute } from "../../apiRoute";
 
 export default createAPIRoute({
   meta: {
-    path: "/user/:id",
+    path: "/user/:userId",
     methods: ["get"],
 
     summary: "Fetch Discord user profile",
@@ -12,7 +12,7 @@ export default createAPIRoute({
     tags: ["discord", "user"],
 
     params: {
-      id: {
+      userId: {
         type: "string",
         required: true,
         description: "Discord user ID",
@@ -71,7 +71,7 @@ export default createAPIRoute({
   },
 
   async callback(ctx) {
-    const id = ctx.req.params.id;
+    const id = ctx.req.params.userId;
 
     const q = ctx.req.query;
     const fetchFresh = q.fetch === "true";

@@ -1,4 +1,4 @@
-# 📘 /channel/:id/messages
+# 📘 /channel/:channelId/messages
 
 > Send a message to a channel
 
@@ -11,7 +11,7 @@ Send a message to a Discord channel. Supports content, embeds, and components (v
 ### 📌 URL Parameters
 | Name | Type | Required | Description | Example |
 |------|------|---------|-------------|--------|
-| `id` | string | ✅ | The ID of the channel | `"123456789012345678"` |
+| `channelId` | string | ✅ | The ID of the channel | `"123456789012345678"` |
 
 ### 📦 Body Parameters
 | Name | Type | Required | Description | Example |

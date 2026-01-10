@@ -7,7 +7,7 @@ import {
 
 export default createAPIRoute({
   meta: {
-    path: "/channel/:id/messages",
+    path: "/channel/:channelId/messages",
     methods: ["post"],
     category: "discord",
     summary: "Send a message to a channel",
@@ -17,7 +17,7 @@ export default createAPIRoute({
     tags: ["discord", "bot", "action"],
 
     params: {
-      id: {
+      channelId: {
         type: "string",
         description: "The ID of the channel",
         required: true,
@@ -86,7 +86,7 @@ export default createAPIRoute({
   },
 
   async callback(ctx) {
-    const channelId = ctx.req.params.id;
+    const channelId = ctx.req.params.channelId;
     const body = ctx.req.body;
 
     if (!body || typeof body !== "object") {

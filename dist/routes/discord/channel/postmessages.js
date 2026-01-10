@@ -4,14 +4,14 @@ const apiRoute_1 = require("../../../apiRoute");
 const discord_js_1 = require("discord.js");
 exports.default = (0, apiRoute_1.createAPIRoute)({
     meta: {
-        path: "/channel/:id/messages",
+        path: "/channel/:channelId/messages",
         methods: ["post"],
         category: "discord",
         summary: "Send a message to a channel",
         description: "Send a message to a Discord channel. Supports content, embeds, and components (v1 & v2 format).",
         tags: ["discord", "bot", "action"],
         params: {
-            id: {
+            channelId: {
                 type: "string",
                 description: "The ID of the channel",
                 required: true,
@@ -77,7 +77,7 @@ exports.default = (0, apiRoute_1.createAPIRoute)({
         ],
     },
     async callback(ctx) {
-        const channelId = ctx.req.params.id;
+        const channelId = ctx.req.params.channelId;
         const body = ctx.req.body;
         if (!body || typeof body !== "object") {
             return ctx.res.status(400).json({

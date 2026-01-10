@@ -3,14 +3,14 @@ Object.defineProperty(exports, "__esModule", { value: true });
 const apiRoute_1 = require("../../../apiRoute");
 exports.default = (0, apiRoute_1.createAPIRoute)({
     meta: {
-        path: "/guild/:id/members",
+        path: "/guild/:guildId/members",
         methods: ["get"],
         summary: "Fetch guild members",
         description: "Returns members of a guild with optional filtering, sorting, and force-fetching from the Discord API.",
         category: "discord",
         tags: ["discord", "guild", "member"],
         params: {
-            id: {
+            guildId: {
                 type: "string",
                 description: "The ID of the guild whose members are being fetched.",
                 required: true,
@@ -69,7 +69,7 @@ exports.default = (0, apiRoute_1.createAPIRoute)({
         ],
     },
     async callback(ctx) {
-        const guildId = ctx.req.params.id;
+        const guildId = ctx.req.params.guildId;
         const fetch = ctx.req.query.fetch === "true";
         const type = ctx.req.query.type || "all";
         const sort = ctx.req.query.sort;

@@ -1,4 +1,4 @@
-# 📘 /user/:id
+# 📘 /user/:userId
 
 > Fetch Discord user profile
 
@@ -11,7 +11,7 @@ Fetches a user's public Discord profile and can optionally include mutual guilds
 ### 📌 URL Parameters
 | Name | Type | Required | Description | Example |
 |------|------|---------|-------------|--------|
-| `id` | string | ✅ | Discord user ID | `"123456789012345678"` |
+| `userId` | string | ✅ | Discord user ID | `"123456789012345678"` |
 
 ### 🔍 Query Parameters
 | Name | Type | Required | Description | Example |
