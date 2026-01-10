@@ -1,6 +1,7 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.recursiveReaddir = recursiveReaddir;
+exports.fetchAllMessagesSafe = fetchAllMessagesSafe;
 const fs_1 = require("fs");
 const path_1 = require("path");
 function recursiveReaddir(path, depth = -1) {
@@ -20,5 +21,31 @@ function recursiveReaddir(path, depth = -1) {
         }
     }
     walk(path, 0);
+    return result;
+}
+async function fetchAllMessagesSafe(channel, opts) {
+    const result = [];
+    let cursor = opts?.before;
+    const max = opts?.max ?? Infinity;
+    while (result.length < max) {
+        const fetched = await channel.messages.fetch({
+            limit: 100,
+            before: cursor,
+            after: opts?.after,
+        });
+        if (!fetched.size)
+            break;
+        for (const msg of fetched.values()) {
+            if (opts?.fromUserId && msg.author.id !== opts.fromUserId)
+                continue;
+            result.push(msg);
+            if (result.length >= max)
+                break;
+        }
+        cursor = fetched.last()?.id;
+        if (opts?.delayMs) {
+            await new Promise((r) => setTimeout(r, opts.delayMs));
+        }
+    }
     return result;
 }
