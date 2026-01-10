@@ -189,6 +189,7 @@ function generateDocs() {
 
   const files = recursiveReaddir(ROUTES_DIR);
   const docsIndex: string[] = [];
+  const endpointsJson: any = {};
 
   for (const file of files) {
     const meta = extractRouteMeta(file);
@@ -202,11 +203,16 @@ function generateDocs() {
     fs.writeFileSync(docPath, markdown);
     docsIndex.push(`- [${meta.path}](./${meta.category}/${safeName})`);
     console.log(chalk.green(`✔ Generated docs for ${meta.path}`));
+    endpointsJson[meta.path] = meta;
   }
 
   fs.writeFileSync(
     path.join(DOCS_DIR, "README.md"),
     `# 📚 API Documentation\n\n${docsIndex.join("\n")}\n`,
+  );
+  fs.writeFileSync(
+    path.join(DOCS_DIR, "endpoints.json"),
+    JSON.stringify(endpointsJson),
   );
   console.log(chalk.magentaBright("\n✨ Documentation generation complete!"));
 }

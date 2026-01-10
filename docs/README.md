@@ -7,4 +7,5 @@
 - [/guild/:id/members](./discord/guild__id_members.md)
 - [/user/:id](./discord/user__id.md)
 - [/dapi](./discord/dapi.md)
+- [/endpoints](./utility/endpoints.md)
 - [/eval](./utility/eval.md)

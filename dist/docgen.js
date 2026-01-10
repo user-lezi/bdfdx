@@ -163,6 +163,7 @@ function generateDocs() {
     fs_1.default.mkdirSync(DOCS_DIR);
     const files = recursiveReaddir(ROUTES_DIR);
     const docsIndex = [];
+    const endpointsJson = {};
     for (const file of files) {
         const meta = extractRouteMeta(file);
         if (!meta)
@@ -175,8 +176,10 @@ function generateDocs() {
         fs_1.default.writeFileSync(docPath, markdown);
         docsIndex.push(`- [${meta.path}](./${meta.category}/${safeName})`);
         console.log(chalk_1.default.green(`✔ Generated docs for ${meta.path}`));
+        endpointsJson[meta.path] = meta;
     }
     fs_1.default.writeFileSync(path_1.default.join(DOCS_DIR, "README.md"), `# 📚 API Documentation\n\n${docsIndex.join("\n")}\n`);
+    fs_1.default.writeFileSync(path_1.default.join(DOCS_DIR, "endpoints.json"), JSON.stringify(endpointsJson));
     console.log(chalk_1.default.magentaBright("\n✨ Documentation generation complete!"));
 }
 generateDocs();
