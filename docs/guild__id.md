@@ -1,16 +1,61 @@
-# 📘 /api/guild/:id
-> Fetches a guild's public information or makes the bot leave the guild.
+# 📘 /guild/:id
+
+> Get guild info or leave guild
+
+Fetches a guild's public information or allows the bot to leave the guild.
 
 **🛠 Methods:** `GET`, `DELETE`
+**🏷 Tags:** discord, bot, guild, action
 **📁 Source:** `\dist\routes\discord\guild\guild.js`
 
-### 🧪 Example  
-```http
-GET /api/guild/:id
-```
-### 🔍 Query Parameters
-| Name | Description |
-|------|-------------|
-| `fetch` | Force refetch from API instead of cache (true/false) |
-| `raw` | Include raw Discord.js guild object (true/false) |
+### 📌 URL Parameters
+| Name | Type | Required | Description | Example |
+|------|------|---------|-------------|--------|
+| `id` | string | ✅ | The ID of the guild | `"123456789012345678"` |
 
+### 🔍 Query Parameters
+| Name | Type | Required | Description | Example |
+|------|------|---------|-------------|--------|
+| `fetch` | boolean | ❌ | Force refetch from API instead of cache | `false` |
+| `raw` | boolean | ❌ | Include raw Discord.js guild object | `false` |
+
+### 🧪 Example 1
+```http
+GET /api/guild/123456789012345678?fetch=true
+```
+#### Response
+```json
+{
+  "id": "123456789012345678",
+  "name": "My Server",
+  "description": "A test server",
+  "owner": {
+    "id": "987654321098765432",
+    "username": "OwnerUser",
+    "name": "OwnerDisplay",
+    "icon": "https://cdn.discordapp.com/avatars/…"
+  },
+  "dates": {
+    "created": 1680000000000,
+    "joined": 1685000000000
+  },
+  "nsfwLevel": 0,
+  "features": [
+    "ANIMATED_ICON",
+    "BANNER"
+  ],
+  "nameAcronym": "MS",
+  "icon": "https://cdn.discordapp.com/icons/…",
+  "banner": "https://cdn.discordapp.com/banners/…",
+  "locale": "en-US",
+  "vanityURL": null,
+  "count": {
+    "members": 150,
+    "channels": 20,
+    "roles": 10,
+    "emojis": 50
+  }
+}
+```
+
+> **[Go back to the list of endpoints](./README.md)**

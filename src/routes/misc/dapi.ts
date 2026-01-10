@@ -3,15 +3,71 @@ import { createAPIRoute } from "../../apiRoute";
 import util from "util";
 
 export default createAPIRoute({
-  path: "/dapi",
-  methods: ["post"],
-  description: "Owner-only raw Discord API access via client.rest",
+  meta: {
+    path: "/dapi",
+    methods: ["post"],
 
-  body: {
-    method: "HTTP method (GET, POST, PATCH, DELETE)",
-    route: "Discord API route (e.g. /users/@me)",
-    query: "Optional query object",
-    body: "Optional JSON body",
+    summary: "Raw Discord REST API access",
+    description:
+      "Allows the bot owner to directly execute raw Discord REST API requests using client.rest. Extremely powerful and unsafe.",
+
+    tags: ["unsafe", "discord", "bot", "action"],
+
+    body: {
+      method: {
+        type: "enum",
+        required: false,
+        description: "HTTP method to use for the Discord API request",
+        example: "GET",
+        enum: {
+          GET: "GET",
+          POST: "POST",
+          PUT: "PUT",
+          PATCH: "PATCH",
+          DELETE: "DELETATTE",
+        },
+      },
+      route: {
+        type: "string",
+        required: true,
+        description: "Discord API route (without base URL)",
+        example: "/users/@me",
+      },
+      query: {
+        type: "object",
+        required: false,
+        description: "Optional query parameters object",
+        example: { limit: 10 },
+      },
+      body: {
+        type: "object",
+        required: false,
+        description: "Optional JSON body for the request",
+        example: { name: "New Channel Name" },
+      },
+    },
+
+    exampleData: [
+      {
+        method: "post",
+        url: "/api/dapi",
+        body: {
+          method: "GET",
+          route: "/users/@me",
+        },
+        response: {
+          ok: true,
+          method: "GET",
+          route: "/users/@me",
+          fullRoute: "/users/@me",
+          response: {
+            id: "1234567890",
+            username: "Bot",
+          },
+          type: "object",
+        },
+      },
+    ],
   },
 
   async callback(ctx) {
@@ -32,12 +88,18 @@ export default createAPIRoute({
         error: `Invalid HTTP method: ${method}`,
       });
     }
+
     let fullRoute = route;
-    let queryEntires = Object.entries(query);
-    if (queryEntires.length) {
+    const queryEntries = Object.entries(query ?? {});
+    if (queryEntries.length) {
       fullRoute += "?";
-      queryEntires.forEach((entry) => (fullRoute += entry.join("=")));
+      queryEntries.forEach(([k, v], i) => {
+        fullRoute += `${k}=${encodeURIComponent(String(v))}${
+          i < queryEntries.length - 1 ? "&" : ""
+        }`;
+      });
     }
+
     try {
       const rest = ctx.client.rest;
 

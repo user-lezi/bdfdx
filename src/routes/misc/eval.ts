@@ -2,14 +2,37 @@ import { inspect } from "util";
 import { createAPIRoute } from "../../apiRoute";
 
 export default createAPIRoute({
-  path: "/eval",
-  methods: ["post"],
-  description: "Evaluates the provided Javascript code.",
+  meta: {
+    path: "/eval",
+    methods: ["post"],
 
-  query: {},
+    summary: "Evaluate JavaScript code",
+    description:
+      "Executes arbitrary JavaScript code in an async context and returns the result along with captured console output.",
 
-  body: {
-    code: "The javascript code to eval. Eg: `console.log('hi');`",
+    tags: ["unsafe", "utility", "action"],
+
+    body: {
+      code: {
+        type: "string",
+        required: true,
+        description: "The JavaScript code to evaluate",
+        example: "console.log('hi'); 2 + 2;",
+      },
+    },
+
+    exampleData: [
+      {
+        method: "post",
+        url: "/api/eval",
+        response: {
+          ok: true,
+          result: "4",
+          logs: ["hi"],
+          type: "number",
+        },
+      },
+    ],
   },
 
   async callback(ctx) {

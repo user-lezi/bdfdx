@@ -2,17 +2,75 @@ import { Guild } from "discord.js";
 import { createAPIRoute } from "../../../apiRoute";
 
 export default createAPIRoute({
-  path: "/guild/:id",
-  methods: ["get", "delete"],
-  description:
-    "Fetches a guild's public information or makes the bot leave the guild.",
+  meta: {
+    path: "/guild/:id",
+    methods: ["get", "delete"],
 
-  query: {
-    fetch: "Force refetch from API instead of cache (true/false)",
-    raw: "Include raw Discord.js guild object (true/false)",
+    summary: "Get guild info or leave guild",
+    description:
+      "Fetches a guild's public information or allows the bot to leave the guild.",
+
+    tags: ["discord", "bot", "guild", "action"],
+
+    params: {
+      id: {
+        type: "string",
+        description: "The ID of the guild",
+        required: true,
+        example: "123456789012345678",
+      },
+    },
+
+    query: {
+      fetch: {
+        type: "boolean",
+        description: "Force refetch from API instead of cache",
+        required: false,
+        example: false,
+      },
+      raw: {
+        type: "boolean",
+        description: "Include raw Discord.js guild object",
+        required: false,
+        example: false,
+      },
+    },
+
+    exampleData: [
+      {
+        method: "get",
+        url: "/api/guild/123456789012345678?fetch=true",
+        response: {
+          id: "123456789012345678",
+          name: "My Server",
+          description: "A test server",
+          owner: {
+            id: "987654321098765432",
+            username: "OwnerUser",
+            name: "OwnerDisplay",
+            icon: "https://cdn.discordapp.com/avatars/…",
+          },
+          dates: {
+            created: 1680000000000,
+            joined: 1685000000000,
+          },
+          nsfwLevel: 0,
+          features: ["ANIMATED_ICON", "BANNER"],
+          nameAcronym: "MS",
+          icon: "https://cdn.discordapp.com/icons/…",
+          banner: "https://cdn.discordapp.com/banners/…",
+          locale: "en-US",
+          vanityURL: null,
+          count: {
+            members: 150,
+            channels: 20,
+            roles: 10,
+            emojis: 50,
+          },
+        },
+      },
+    ],
   },
-
-  body: {},
 
   async callback(ctx) {
     const id = ctx.req.params.id;
@@ -34,9 +92,7 @@ export default createAPIRoute({
       });
     }
 
-    // =====================
-    // DELETE → Leave guild
-    // =====================
+    // DELETE → leave guild
     if (ctx.req.method === "DELETE") {
       try {
         await guild.leave();
@@ -46,7 +102,7 @@ export default createAPIRoute({
           message: "Bot left the guild",
           id: guild.id,
         });
-      } catch (err) {
+      } catch {
         return ctx.res.status(500).json({
           error: "Failed to leave guild",
           code: 500,
@@ -54,11 +110,7 @@ export default createAPIRoute({
       }
     }
 
-    // =====================
-    // GET → Guild info
-    // =====================
-
-    // Owner
+    // GET → guild info
     const owner = await guild.fetchOwner({ cache: true });
 
     const guildJSON: any = {
@@ -96,9 +148,7 @@ export default createAPIRoute({
       },
     };
 
-    if (includeRaw) {
-      guildJSON.raw = guild;
-    }
+    if (includeRaw) guildJSON.raw = guild;
 
     ctx.res.json(guildJSON);
   },

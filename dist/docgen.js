@@ -19,63 +19,142 @@ function recursiveReaddir(dir) {
         const stat = fs_1.default.statSync(full);
         if (stat.isDirectory())
             results = results.concat(recursiveReaddir(full));
-        else if (file.endsWith(".js"))
+        else if (file.endsWith(".js") || file.endsWith(".ts"))
             results.push(full);
     }
     return results;
 }
 // ---------------------------
-// Extract route info from file
+// Extract route meta from file
 // ---------------------------
-function extractRouteInfo(filePath) {
+function extractRouteMeta(filePath) {
     const mod = require(filePath);
     const route = mod.default || mod;
-    const config = route.data ?? {};
-    return {
-        file: filePath.replace(process.cwd(), ""),
-        path: "/api" + config.path,
-        methods: config.methods,
-        description: config.description,
-        query: config.query,
-        body: config.body,
-    };
+    if (!route?.meta)
+        return null;
+    return route.meta;
 }
 // ---------------------------
-// Generate Markdown
+// Generate table for params, query, body
 // ---------------------------
-function generateMarkdown(route) {
-    const header = `# 📘 ${route.path}\n`;
-    const desc = route.description
-        ? `> ${route.description}\n\n`
-        : "> No description provided.\n\n";
-    const methods = `**🛠 Methods:** ${route.methods
-        .map((m) => "`" + m.toUpperCase() + "`")
-        .join(", ")}\n`;
-    const source = `**📁 Source:** \`${route.file}\`\n`;
-    const endpointExample = `
-### 🧪 Example  
-\`\`\`http
-${route.methods[0].toUpperCase()} ${route.path}
-\`\`\`
-`;
-    // Build query table
-    let queryTable = "";
-    if (route.query && Object.keys(route.query).length > 0) {
-        queryTable = `### 🔍 Query Parameters\n| Name | Description |\n|------|-------------|\n${Object.entries(route.query)
-            .map(([key, desc]) => `| \`${key}\` | ${desc} |`)
-            .join("\n")}\n\n`;
-    }
-    // Build body table
-    let bodyTable = "";
-    if (route.body && Object.keys(route.body).length > 0) {
-        bodyTable = `### 📦 Body Parameters\n| Name | Description |\n|------|-------------|\n${Object.entries(route.body)
-            .map(([key, desc]) => `| \`${key}\` | ${desc} |`)
-            .join("\n")}\n\n`;
-    }
-    return (header + desc + methods + source + endpointExample + queryTable + bodyTable);
+function generateFieldTable(fields, title) {
+    if (!fields || Object.keys(fields).length === 0)
+        return "";
+    const header = `### ${title}\n| Name | Type | Required | Description | Example |\n|------|------|---------|-------------|--------|\n`;
+    const rows = Object.entries(fields)
+        .map(([name, field]) => {
+        const type = field.type;
+        const required = field.required ? "✅" : "❌";
+        const desc = field.description || "-";
+        const example = field.example !== undefined
+            ? `\`${JSON.stringify(field.example)}\``
+            : "-";
+        return `| \`${name}\` | ${type} | ${required} | ${desc} | ${example} |`;
+    })
+        .join("\n");
+    return header + rows + "\n\n";
 }
 // ---------------------------
-// Main Generator
+// Generate example body from meta.body
+// ---------------------------
+function generateBodyForExample(meta) {
+    if (!meta.body)
+        return {};
+    const obj = {};
+    for (const [key, field] of Object.entries(meta.body)) {
+        if (field.example !== undefined)
+            obj[key] = field.example;
+        else {
+            // Fallback based on type
+            switch (field.type) {
+                case "string":
+                    obj[key] = "string";
+                    break;
+                case "number":
+                    obj[key] = 0;
+                    break;
+                case "boolean":
+                    obj[key] = false;
+                    break;
+                case "array":
+                    obj[key] = [];
+                    break;
+                case "object":
+                    obj[key] = {};
+                    break;
+                case "enum":
+                    obj[key] = Object.keys(field.enum || {})[0] ?? "enumValue";
+                    break;
+                default:
+                    obj[key] = null;
+            }
+        }
+    }
+    return obj;
+}
+// ---------------------------
+// Generate example block
+// ---------------------------
+function generateExampleBlock(meta) {
+    if (!meta.exampleData || meta.exampleData.length === 0)
+        return "";
+    return meta.exampleData
+        .map((ex, i) => {
+        let bodyContent = "";
+        // Use exampleData.body if present
+        if (ex.body) {
+            bodyContent =
+                "#### Body\n```json\n" + JSON.stringify(ex.body, null, 2) + "\n```\n";
+        }
+        // Fallback to meta.body if method is mutative and example body missing
+        else if (["post", "put", "patch"].includes(ex.method.toLowerCase()) &&
+            meta.body) {
+            bodyContent =
+                "#### Body\n```json\n" +
+                    JSON.stringify(generateBodyForExample(meta), null, 2) +
+                    "\n```\n";
+        }
+        const responseContent = ex.response
+            ? "#### Response\n```json\n" +
+                JSON.stringify(ex.response, null, 2) +
+                "\n```\n"
+            : "";
+        return (`### 🧪 Example ${i + 1}\n\`\`\`http\n${ex.method.toUpperCase()} ${ex.url}\n\`\`\`\n` +
+            bodyContent +
+            responseContent);
+    })
+        .join("\n");
+}
+// ---------------------------
+// Generate Markdown for route
+// ---------------------------
+function generateMarkdown(meta, filePath) {
+    const header = `# 📘 ${meta.path}\n\n`;
+    const summary = `> ${meta.summary ?? "No summary provided."}\n\n`;
+    const description = meta.description ? meta.description + "\n\n" : "";
+    const methods = `**🛠 Methods:** ${meta.methods.map((m) => "`" + m.toUpperCase() + "`").join(", ")}\n`;
+    const tags = meta.tags && meta.tags.length
+        ? `**🏷 Tags:** ${meta.tags.join(", ")}\n`
+        : "";
+    const source = `**📁 Source:** \`${filePath.replace(process.cwd(), "")}\`\n\n`;
+    const paramsTable = generateFieldTable(meta.params, "📌 URL Parameters");
+    const queryTable = generateFieldTable(meta.query, "🔍 Query Parameters");
+    const bodyTable = generateFieldTable(meta.body, "📦 Body Parameters");
+    const exampleBlock = generateExampleBlock(meta);
+    return (header +
+        summary +
+        description +
+        methods +
+        tags +
+        source +
+        paramsTable +
+        queryTable +
+        bodyTable +
+        exampleBlock +
+        "\n> **[Go back to the list of endpoints](./README.md)**");
+}
+// ---------------------------
+// Main generator
 // ---------------------------
 function generateDocs() {
     console.log(chalk_1.default.blueBright("📄 Generating API documentation...\n"));
@@ -85,17 +164,16 @@ function generateDocs() {
     const files = recursiveReaddir(ROUTES_DIR);
     const docsIndex = [];
     for (const file of files) {
-        const info = extractRouteInfo(file);
-        if (!info)
+        const meta = extractRouteMeta(file);
+        if (!meta)
             continue;
-        const markdown = generateMarkdown(info);
-        const safeName = info.path.replace("/api/", "").replace(/[^a-zA-Z0-9]/g, "_") + ".md";
+        const markdown = generateMarkdown(meta, file);
+        const safeName = meta.path.slice(1).replace(/[^a-zA-Z0-9]/g, "_") + ".md";
         const docPath = path_1.default.join(DOCS_DIR, safeName);
         fs_1.default.writeFileSync(docPath, markdown);
-        docsIndex.push(`- [${info.path}](./${safeName})`);
-        console.log(chalk_1.default.green(`✔ Generated docs for ${info.path}`));
+        docsIndex.push(`- [${meta.path}](./${safeName})`);
+        console.log(chalk_1.default.green(`✔ Generated docs for ${meta.path}`));
     }
-    // Generate README index
     fs_1.default.writeFileSync(path_1.default.join(DOCS_DIR, "README.md"), `# 📚 API Documentation\n\n${docsIndex.join("\n")}\n`);
     console.log(chalk_1.default.magentaBright("\n✨ Documentation generation complete!"));
 }

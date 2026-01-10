@@ -3,12 +3,32 @@ Object.defineProperty(exports, "__esModule", { value: true });
 const util_1 = require("util");
 const apiRoute_1 = require("../../apiRoute");
 exports.default = (0, apiRoute_1.createAPIRoute)({
-    path: "/eval",
-    methods: ["post"],
-    description: "Evaluates the provided Javascript code.",
-    query: {},
-    body: {
-        code: "The javascript code to eval. Eg: `console.log('hi');`",
+    meta: {
+        path: "/eval",
+        methods: ["post"],
+        summary: "Evaluate JavaScript code",
+        description: "Executes arbitrary JavaScript code in an async context and returns the result along with captured console output.",
+        tags: ["unsafe", "utility", "action"],
+        body: {
+            code: {
+                type: "string",
+                required: true,
+                description: "The JavaScript code to evaluate",
+                example: "console.log('hi'); 2 + 2;",
+            },
+        },
+        exampleData: [
+            {
+                method: "post",
+                url: "/api/eval",
+                response: {
+                    ok: true,
+                    result: "4",
+                    logs: ["hi"],
+                    type: "number",
+                },
+            },
+        ],
     },
     async callback(ctx) {
         const { code } = ctx.req.body ?? {};

@@ -1,17 +1,53 @@
-# 📘 /api/user/:id
-> Fetches a user's public Discord profile and optionally returns more detailed information.
+# 📘 /user/:id
+
+> Fetch Discord user profile
+
+Fetches a user's public Discord profile and can optionally include mutual guilds or the raw Discord.js user object.
 
 **🛠 Methods:** `GET`
+**🏷 Tags:** discord, user
 **📁 Source:** `\dist\routes\discord\user.js`
 
-### 🧪 Example  
-```http
-GET /api/user/:id
-```
-### 🔍 Query Parameters
-| Name | Description |
-|------|-------------|
-| `fetch` | Force refetch from API instead of cache (true/false) |
-| `mutualGuilds` | Include list of guild IDs the bot shares with the user (true/false) |
-| `raw` | Include raw Discord.js user object (true/false) |
+### 📌 URL Parameters
+| Name | Type | Required | Description | Example |
+|------|------|---------|-------------|--------|
+| `id` | string | ✅ | Discord user ID | `"123456789012345678"` |
 
+### 🔍 Query Parameters
+| Name | Type | Required | Description | Example |
+|------|------|---------|-------------|--------|
+| `fetch` | boolean | ❌ | Force refetch from Discord API instead of cache | `true` |
+| `mutualGuilds` | boolean | ❌ | Include guilds the bot and user share (requires member cache) | `true` |
+| `raw` | boolean | ❌ | Include raw Discord.js User object | `false` |
+
+### 🧪 Example 1
+```http
+GET /api/user/123456789012345678?mutualGuilds=true
+```
+#### Response
+```json
+{
+  "id": "123456789012345678",
+  "username": "SomeUser",
+  "displayName": "SomeUser",
+  "tag": "SomeUser#0001",
+  "bot": false,
+  "globalName": "Some User",
+  "flags": [
+    "EarlySupporter"
+  ],
+  "avatar": "https://cdn.discordapp.com/...",
+  "banner": null,
+  "createdTimestamp": 1600000000000,
+  "accentColor": 16711680,
+  "mutualGuilds": [
+    {
+      "id": "987654321098765432",
+      "name": "Example Server",
+      "nickname": "Nick"
+    }
+  ]
+}
+```
+
+> **[Go back to the list of endpoints](./README.md)**
