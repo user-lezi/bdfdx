@@ -313,7 +313,9 @@ function openGuild(g, push = true) {
 
       node.querySelector("[data-leave-btn]").onclick = async () => {
         if (!confirm(`Leave ${g.name}?`)) return;
-        await fetchAPI(`/api/guild/${g.id}`, pw, "DELETE");
+        await fetchAPI(`/api/guild/${g.id}`, pw, "DELETE").then(
+          () => (BotGuilds = BotGuilds.filter((x) => x.id !== g.id)),
+        );
         history.replaceState({}, "", "?tab=panel");
         loadPanel();
       };
