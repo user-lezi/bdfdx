@@ -21,7 +21,7 @@ function createAPIRoute(data) {
                     continue;
                 }
                 app[method](runtimePath, (req, res, next) => data.callback({ client, req, res, next }));
-                console.log(chalk_1.default.green(`\t✔ [${method.toUpperCase()}] ${runtimePath}`));
+                console.log(chalk_1.default.green(`✔ [${method.toUpperCase()}] ${runtimePath}`));
             }
         },
     };

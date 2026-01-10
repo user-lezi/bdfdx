@@ -102,7 +102,7 @@ export function createAPIRoute<B extends Record<string, Field>>(data: {
         );
 
         console.log(
-          chalk.green(`\t✔ [${method.toUpperCase()}] ${runtimePath}`),
+          chalk.green(`✔ [${method.toUpperCase()}] ${runtimePath}`),
         );
       }
     },
