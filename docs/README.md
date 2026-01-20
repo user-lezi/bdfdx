@@ -1,5 +1,7 @@
 # 📚 API Documentation
 
+- [/bdfd/function/:function](./bdfd/bdfd_function__function.md)
+- [/bdfd/functions](./bdfd/bdfd_functions.md)
 - [/bot](./discord/bot.md)
 - [/channels/:channelId/messages](./discord/channels__channelId_messages.md)
 - [/channels/:channelId/messages/:messageId](./discord/channels__channelId_messages__messageId.md)

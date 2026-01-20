@@ -2,6 +2,7 @@ import chalk from "chalk";
 import { Client } from "discord.js";
 import { CONFIG } from "./config";
 import { createApp } from "./app";
+import { BDFDMetadata } from "./bdfdMetadata";
 
 // Create a client instance
 const client = new Client({
@@ -32,7 +33,13 @@ client.once("clientReady", () => {
     client.application!.fetch();
     client.application!.commands.fetch();
   }
-  fetchStuff();
+  function fetchOnce() {
+    fetchStuff();
+
+    // Fetch the BDFD data
+    BDFDMetadata.fetchFunctions();
+  }
+  fetchOnce();
   setInterval(fetchStuff, 600000);
 
   createApp(client as Client<true>, CONFIG);

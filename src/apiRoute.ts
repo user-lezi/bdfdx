@@ -33,7 +33,10 @@ export type Tags =
   | "utility"
 
   /** Mutative endpoints that perform an action (leave guild, ban, restart) */
-  | "action";
+  | "action"
+
+  /** BDFD-related endpoints */
+  | "bdfd";
 
 export type Field = {
   type: "string" | "number" | "boolean" | "array" | "object" | "enum";
