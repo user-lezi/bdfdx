@@ -1,4 +1,3 @@
-// ================= helpers =================
 function show(el) {
   el.classList.remove("hidden");
   requestAnimationFrame(() => {
@@ -35,19 +34,16 @@ function showPanel(name) {
   __p = id;
 }
 
-// ================= api =================
 function fetchAPI(url, password, method = "GET", options = {}) {
   return fetch(url, { method, headers: { password }, ...options });
 }
 
-// ================= state =================
 let CurrentAccentColor;
 let AccentColorCache = {};
 let BotData;
 let BotGuilds;
 let currentPage = 1;
 
-// ================= accent =================
 function setAccentColor(color) {
   if (color === CurrentAccentColor) return;
   CurrentAccentColor = color;
@@ -105,7 +101,6 @@ async function extractAccentColor(src, refresh = false) {
   }).then((c) => (AccentColorCache[src] = c));
 }
 
-// ================= auth =================
 async function validatePassword(pw) {
   try {
     const r = await fetch(`/password?password=${encodeURIComponent(pw)}`);
@@ -131,7 +126,6 @@ async function submitPassword() {
   loadPanel();
 }
 
-// ================= panel =================
 function loadPanel() {
   console.log("[panel] load");
   showPanel("panel");
@@ -139,14 +133,13 @@ function loadPanel() {
   loadGuilds();
 }
 
-// ================= bot =================
 async function fetchBotData() {
   const pw = localStorage.getItem("panelAuth");
   if (!pw) return;
 
   console.log("[bot] fetching");
 
-  BotData = BotData ?? (await fetchAPI("/api/bot", pw).then((r) => r.json()));
+  BotData ??= await fetchAPI("/api/bot", pw).then((r) => r.json());
 
   document.getElementById("bot-name").textContent =
     BotData.user?.tag ?? "Unknown";
@@ -167,7 +160,6 @@ async function fetchBotData() {
   document.title = `${BotData.user.username} Panel`;
 }
 
-// ================= uptime =================
 function updateUptime(ms) {
   const el = document.getElementById("uptime");
 
@@ -189,7 +181,6 @@ function updateUptime(ms) {
   }, 10_000);
 }
 
-// ================= guilds =================
 function guildsPerPage() {
   return innerWidth <= 900 ? 8 : 9;
 }
@@ -204,9 +195,7 @@ async function loadGuilds() {
 
   console.log("[guilds] fetching");
 
-  BotGuilds =
-    BotGuilds ?? (await fetchAPI("/api/guilds", pw).then((r) => r.json()));
-
+  BotGuilds ??= await fetchAPI("/api/guilds", pw).then((r) => r.json());
   renderGuildsPage(currentPage);
 }
 
@@ -222,7 +211,6 @@ function renderGuildsPage(page) {
 
   const start = (currentPage - 1) * perPage;
   const slice = BotGuilds.slice(start, start + perPage);
-
   const tpl = document.getElementById("guild-card-template");
 
   for (const g of slice) {
@@ -265,7 +253,6 @@ function renderPaginationControls(pages) {
   );
 }
 
-// ================= guild panel =================
 function openGuild(g, push = true) {
   console.log("[guild] open", g.id);
 
@@ -308,14 +295,14 @@ function openGuild(g, push = true) {
       node.querySelector("[data-joined]").textContent = d.dates?.joined
         ? new Date(d.dates.joined).toLocaleDateString()
         : "Unknown";
+
       node.querySelector("[data-owner-btn]").onclick = () =>
         openUserPanel(d.owner.id);
 
       node.querySelector("[data-leave-btn]").onclick = async () => {
         if (!confirm(`Leave ${g.name}?`)) return;
-        await fetchAPI(`/api/guild/${g.id}`, pw, "DELETE").then(
-          () => (BotGuilds = BotGuilds.filter((x) => x.id !== g.id)),
-        );
+        await fetchAPI(`/api/guild/${g.id}`, pw, "DELETE");
+        BotGuilds = BotGuilds.filter((x) => x.id !== g.id);
         history.replaceState({}, "", "?tab=panel");
         loadPanel();
       };
@@ -325,7 +312,6 @@ function openGuild(g, push = true) {
     });
 }
 
-// ================= user panel =================
 function openUserPanel(id, push = true) {
   console.log("[user] open", id);
 
@@ -348,6 +334,7 @@ function openUserPanel(id, push = true) {
       document.getElementById("user-avatar").src = u.avatar;
       if (u.banner) document.getElementById("user-banner").src = u.banner;
       else document.getElementById("user-banner").classList.add("hidden");
+
       document.getElementById("user-id").textContent = `ID: ${u.id}`;
       document.getElementById("user-name").textContent = !u.bot
         ? `@${u.username}`
@@ -359,26 +346,27 @@ function openUserPanel(id, push = true) {
       node.querySelector("[data-created]").textContent = new Date(
         u.createdTimestamp,
       ).toLocaleDateString();
-
       node.querySelector("[data-bot]").textContent = u.bot ? "Yes" : "No";
 
-      node.querySelector("[data-guilds]").innerHTML =
-        u.mutualGuilds
-          .slice(0, 2)
-          .map(
-            (g) =>
-              `<span><img style="display:inline-block;aspect-ratio: 1/1;height:1em;border-radius:25%;" alt="${g.name}" src="${g.icon ?? "./fallback-guild.png"}" /> ${g.name} </span>`,
-          )
-          .join("<br>") ?? "No Mutual Guilds";
-      node.querySelector("[data-flags]").textContent =
-        u.flags && u.flags.length ? u.flags.join(", ") : "-";
+      node.querySelector("[data-guilds]").innerHTML = u.mutualGuilds?.length
+        ? u.mutualGuilds
+            .slice(0, 2)
+            .map(
+              (g) =>
+                `<span><img style="display:inline-block;aspect-ratio:1/1;height:1em;border-radius:25%;" src="${g.icon ?? "./fallback-guild.png"}" /> ${g.name}</span>`,
+            )
+            .join("<br>")
+        : "No Mutual Guilds";
+
+      node.querySelector("[data-flags]").textContent = u.flags?.length
+        ? u.flags.join(", ")
+        : "-";
 
       content.innerHTML = "";
       content.appendChild(node);
     });
 }
 
-// ================= history =================
 window.addEventListener("popstate", () => {
   const q = new URLSearchParams(location.search);
 
@@ -394,13 +382,9 @@ window.addEventListener("popstate", () => {
   loadPanel();
 });
 
-// ================= back btn =================
-if (document.getElementById("guild-back-btn"))
-  document.getElementById("guild-back-btn").onclick = () => loadPanel();
-if (document.getElementById("user-back-btn"))
-  document.getElementById("user-back-btn").onclick = () => loadPanel();
+document.getElementById("guild-back-btn")?.addEventListener("click", loadPanel);
+document.getElementById("user-back-btn")?.addEventListener("click", loadPanel);
 
-// ================= boot =================
 window.onload = async () => {
   const pw = localStorage.getItem("panelAuth");
   if (!pw || !(await validatePassword(pw))) {
