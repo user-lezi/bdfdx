@@ -4,7 +4,7 @@ import { BDFDMetadata } from "../../bdfdMetadata";
 export default createAPIRoute({
   meta: {
     path: "/bdfd/functions",
-    methods: ["get"],
+    method: "get",
 
     summary: "List all BDFD functions.",
     description:

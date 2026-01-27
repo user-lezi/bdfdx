@@ -1,10 +1,9 @@
-# 📘 /guilds
+# 📘 GET /guilds
 
 > List bot guilds
 
 Returns a list of guilds the bot is currently in.
 
-**🛠 Methods:** `GET`
 **🏷 Tags:** discord, bot, guild
 **📁 Source:** `\dist\routes\discord\guild\guilds.js`
 

@@ -4,7 +4,7 @@ const apiRoute_1 = require("../../../apiRoute");
 exports.default = (0, apiRoute_1.createAPIRoute)({
     meta: {
         path: "/guild/:guildId/members",
-        methods: ["get"],
+        method: "get",
         summary: "Fetch guild members",
         description: "Returns members of a guild with optional filtering, sorting, and force-fetching from the Discord API.",
         category: "discord",

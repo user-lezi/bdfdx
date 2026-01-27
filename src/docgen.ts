@@ -148,10 +148,9 @@ function generateExampleBlock(meta: RouteMeta<any>): string {
 // Generate Markdown for route
 // ---------------------------
 function generateMarkdown(meta: RouteMeta<any>, filePath: string): string {
-  const header = `# 📘 ${meta.path}\n\n`;
+  const header = `# 📘 ${meta.method.toUpperCase()} ${meta.path}\n\n`;
   const summary = `> ${meta.summary ?? "No summary provided."}\n\n`;
   const description = meta.description ? meta.description + "\n\n" : "";
-  const methods = `**🛠 Methods:** ${meta.methods.map((m) => "`" + m.toUpperCase() + "`").join(", ")}\n`;
   const tags =
     meta.tags && meta.tags.length
       ? `**🏷 Tags:** ${meta.tags.join(", ")}\n`
@@ -167,7 +166,6 @@ function generateMarkdown(meta: RouteMeta<any>, filePath: string): string {
     header +
     summary +
     description +
-    methods +
     tags +
     source +
     paramsTable +
@@ -196,14 +194,20 @@ function generateDocs() {
     if (!meta) continue;
 
     const markdown = generateMarkdown(meta, file);
-    const safeName = meta.path.slice(1).replace(/[^a-zA-Z0-9]/g, "_") + ".md";
+    const safeName =
+      meta.method +
+      "_" +
+      meta.path.slice(1).replace(/[^a-zA-Z0-9]/g, "_") +
+      ".md";
     if (!fs.existsSync(path.join(DOCS_DIR, meta.category)))
       fs.mkdirSync(path.join(DOCS_DIR, meta.category));
     const docPath = path.join(DOCS_DIR, meta.category, safeName);
     fs.writeFileSync(docPath, markdown);
-    docsIndex.push(`- [${meta.path}](./${meta.category}/${safeName})`);
+    docsIndex.push(
+      `- [${meta.method.toUpperCase()} ${meta.path}](./${meta.category}/${safeName})`,
+    );
     console.log(chalk.green(`✔ Generated docs for ${meta.path}`));
-    endpointsJson[meta.path] = meta;
+    endpointsJson[meta.method.toUpperCase() + " " + meta.path] = meta;
   }
 
   fs.writeFileSync(

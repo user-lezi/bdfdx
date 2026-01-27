@@ -1,10 +1,9 @@
-# 📘 /eval
+# 📘 POST /eval
 
 > Evaluate JavaScript code
 
 Executes arbitrary JavaScript code in an async context and returns the result along with captured console output.
 
-**🛠 Methods:** `POST`
 **🏷 Tags:** unsafe, utility, action
 **📁 Source:** `\dist\routes\misc\eval.js`
 

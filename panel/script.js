@@ -406,3 +406,30 @@ window.onload = async () => {
 
   loadPanel();
 };
+
+(() => {
+  const btn = document.getElementById("floating-btn");
+  const menu = document.getElementById("floating-menu");
+
+  if (!btn || !menu) return;
+
+  btn.onclick = () => {
+    const open = !menu.classList.contains("hidden");
+
+    if (open) {
+      menu.classList.add("opacity-0", "scale-95");
+      setTimeout(() => menu.classList.add("hidden"), 150);
+    } else {
+      menu.classList.remove("hidden");
+      requestAnimationFrame(() => {
+        menu.classList.remove("opacity-0", "scale-95");
+      });
+    }
+  };
+
+  menu.querySelectorAll("[data-link]").forEach((el) => {
+    el.onclick = () => {
+      location.href = el.dataset.link;
+    };
+  });
+})();

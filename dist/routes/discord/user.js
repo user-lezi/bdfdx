@@ -4,7 +4,7 @@ const apiRoute_1 = require("../../apiRoute");
 exports.default = (0, apiRoute_1.createAPIRoute)({
     meta: {
         path: "/user/:userId",
-        methods: ["get"],
+        method: "get",
         summary: "Fetch Discord user profile",
         description: "Fetches a user's public Discord profile and can optionally include mutual guilds or the raw Discord.js user object.",
         category: "discord",

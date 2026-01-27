@@ -1,10 +1,9 @@
-# 📘 /channels/:channelId/messages
+# 📘 POST /channels/:channelId/messages
 
 > Fetch messages from a channel
 
 Fetches messages from a text channel. Supports pagination, user filtering, and full-history fetch when limit is omitted.
 
-**🛠 Methods:** `POST`
 **🏷 Tags:** message, discord
 **📁 Source:** `\dist\routes\discord\channel\allMessages.js`
 

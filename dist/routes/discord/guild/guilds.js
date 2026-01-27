@@ -4,7 +4,7 @@ const apiRoute_1 = require("../../../apiRoute");
 exports.default = (0, apiRoute_1.createAPIRoute)({
     meta: {
         path: "/guilds",
-        methods: ["get"],
+        method: "get",
         summary: "List bot guilds",
         description: "Returns a list of guilds the bot is currently in.",
         category: "discord",

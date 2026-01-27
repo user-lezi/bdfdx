@@ -1,10 +1,9 @@
-# 📘 /bdfd/functions
+# 📘 GET /bdfd/functions
 
 > List all BDFD functions.
 
 Returns a list of all available BDFD functions with or without details.
 
-**🛠 Methods:** `GET`
 **🏷 Tags:** bdfd, utility
 **📁 Source:** `\dist\routes\bdfd\functions.js`
 

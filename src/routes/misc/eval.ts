@@ -4,7 +4,7 @@ import { createAPIRoute } from "../../apiRoute";
 export default createAPIRoute({
   meta: {
     path: "/eval",
-    methods: ["post"],
+    method: "post",
 
     summary: "Evaluate JavaScript code",
     description:

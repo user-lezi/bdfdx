@@ -5,7 +5,7 @@ const bdfdMetadata_1 = require("../../bdfdMetadata");
 exports.default = (0, apiRoute_1.createAPIRoute)({
     meta: {
         path: "/bdfd/function/:function",
-        methods: ["get"],
+        method: "get",
         summary: "Get a BDFD function by name",
         description: "Fetch detailed information about a specific BDFD function. If no exact match is found, similar functions are suggested.",
         category: "bdfd",

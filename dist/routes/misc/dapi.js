@@ -8,7 +8,7 @@ const util_1 = __importDefault(require("util"));
 exports.default = (0, apiRoute_1.createAPIRoute)({
     meta: {
         path: "/dapi",
-        methods: ["post"],
+        method: "post",
         summary: "Raw Discord REST API access",
         description: "Allows the bot owner to directly execute raw Discord REST API requests using client.rest. Extremely powerful and unsafe.",
         category: "discord",

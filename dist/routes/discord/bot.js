@@ -8,7 +8,7 @@ const os_1 = __importDefault(require("os"));
 exports.default = (0, apiRoute_1.createAPIRoute)({
     meta: {
         path: "/bot",
-        methods: ["get"],
+        method: "get",
         summary: "Fetch bot information",
         description: "Returns public bot identity, application metadata, runtime statistics, and environment information.",
         category: "discord",

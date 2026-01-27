@@ -1,10 +1,9 @@
-# 📘 /dapi
+# 📘 POST /dapi
 
 > Raw Discord REST API access
 
 Allows the bot owner to directly execute raw Discord REST API requests using client.rest. Extremely powerful and unsafe.
 
-**🛠 Methods:** `POST`
 **🏷 Tags:** unsafe, discord, bot, action
 **📁 Source:** `\dist\routes\misc\dapi.js`
 

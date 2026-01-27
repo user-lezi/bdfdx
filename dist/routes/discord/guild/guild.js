@@ -4,11 +4,11 @@ const apiRoute_1 = require("../../../apiRoute");
 exports.default = (0, apiRoute_1.createAPIRoute)({
     meta: {
         path: "/guild/:guildId",
-        methods: ["get", "delete"],
-        summary: "Get guild info or leave guild",
-        description: "Fetches a guild's public information or allows the bot to leave the guild.",
+        method: "get",
+        summary: "Get guild info",
+        description: "Fetches a guild's public information",
         category: "discord",
-        tags: ["discord", "bot", "guild", "action"],
+        tags: ["discord", "bot", "guild"],
         params: {
             guildId: {
                 type: "string",
@@ -86,24 +86,6 @@ exports.default = (0, apiRoute_1.createAPIRoute)({
                 code: 404,
             });
         }
-        // DELETE → leave guild
-        if (ctx.req.method === "DELETE") {
-            try {
-                await guild.leave();
-                return ctx.res.json({
-                    success: true,
-                    message: "Bot left the guild",
-                    id: guild.id,
-                });
-            }
-            catch {
-                return ctx.res.status(500).json({
-                    error: "Failed to leave guild",
-                    code: 500,
-                });
-            }
-        }
-        // GET → guild info
         const owner = await guild.fetchOwner({ cache: true });
         const guildJSON = {
             id: guild.id,

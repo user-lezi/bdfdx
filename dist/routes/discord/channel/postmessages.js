@@ -5,7 +5,7 @@ const discord_js_1 = require("discord.js");
 exports.default = (0, apiRoute_1.createAPIRoute)({
     meta: {
         path: "/channel/:channelId/messages",
-        methods: ["post"],
+        method: "post",
         category: "discord",
         summary: "Send a message to a channel",
         description: "Send a message to a Discord channel. Supports content, embeds, and components (v1 & v2 format).",

@@ -5,7 +5,7 @@ import util from "util";
 export default createAPIRoute({
   meta: {
     path: "/dapi",
-    methods: ["post"],
+    method: "post",
 
     summary: "Raw Discord REST API access",
     description:

@@ -8,7 +8,7 @@ import {
 export default createAPIRoute({
   meta: {
     path: "/channel/:channelId/messages",
-    methods: ["post"],
+    method: "post",
     category: "discord",
     summary: "Send a message to a channel",
     description:

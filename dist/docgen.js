@@ -129,10 +129,9 @@ function generateExampleBlock(meta) {
 // Generate Markdown for route
 // ---------------------------
 function generateMarkdown(meta, filePath) {
-    const header = `# 📘 ${meta.path}\n\n`;
+    const header = `# 📘 ${meta.method.toUpperCase()} ${meta.path}\n\n`;
     const summary = `> ${meta.summary ?? "No summary provided."}\n\n`;
     const description = meta.description ? meta.description + "\n\n" : "";
-    const methods = `**🛠 Methods:** ${meta.methods.map((m) => "`" + m.toUpperCase() + "`").join(", ")}\n`;
     const tags = meta.tags && meta.tags.length
         ? `**🏷 Tags:** ${meta.tags.join(", ")}\n`
         : "";
@@ -144,7 +143,6 @@ function generateMarkdown(meta, filePath) {
     return (header +
         summary +
         description +
-        methods +
         tags +
         source +
         paramsTable +
@@ -169,14 +167,17 @@ function generateDocs() {
         if (!meta)
             continue;
         const markdown = generateMarkdown(meta, file);
-        const safeName = meta.path.slice(1).replace(/[^a-zA-Z0-9]/g, "_") + ".md";
+        const safeName = meta.method +
+            "_" +
+            meta.path.slice(1).replace(/[^a-zA-Z0-9]/g, "_") +
+            ".md";
         if (!fs_1.default.existsSync(path_1.default.join(DOCS_DIR, meta.category)))
             fs_1.default.mkdirSync(path_1.default.join(DOCS_DIR, meta.category));
         const docPath = path_1.default.join(DOCS_DIR, meta.category, safeName);
         fs_1.default.writeFileSync(docPath, markdown);
-        docsIndex.push(`- [${meta.path}](./${meta.category}/${safeName})`);
+        docsIndex.push(`- [${meta.method.toUpperCase()} ${meta.path}](./${meta.category}/${safeName})`);
         console.log(chalk_1.default.green(`✔ Generated docs for ${meta.path}`));
-        endpointsJson[meta.path] = meta;
+        endpointsJson[meta.method.toUpperCase() + " " + meta.path] = meta;
     }
     fs_1.default.writeFileSync(path_1.default.join(DOCS_DIR, "README.md"), `# 📚 API Documentation\n\n${docsIndex.join("\n")}\n`);
     fs_1.default.writeFileSync(path_1.default.join(DOCS_DIR, "endpoints.json"), JSON.stringify(endpointsJson));

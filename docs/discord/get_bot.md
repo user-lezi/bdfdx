@@ -1,10 +1,9 @@
-# 📘 /bot
+# 📘 GET /bot
 
 > Fetch bot information
 
 Returns public bot identity, application metadata, runtime statistics, and environment information.
 
-**🛠 Methods:** `GET`
 **🏷 Tags:** discord, bot, utility
 **📁 Source:** `\dist\routes\discord\bot.js`
 

@@ -1,6 +1,6 @@
 :root {
   --accent-rgb: 88, 101, 242;
-  transition: var(--accent-rgb) 500ms;
+  transition: var(--accent-rgb) 1.2s;
 }
 
 body {
@@ -19,6 +19,25 @@ body::before {
   );
   filter: blur(90px);
   pointer-events: none;
+}
+
+/* menu */
+.floating-item {
+  padding: 0.75rem 1rem;
+  border-radius: 0.75rem;
+  background: rgba(0, 0, 0, 0.6);
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  text-align: left;
+  white-space: nowrap;
+  transition:
+    transform 0.15s ease,
+    background 0.15s ease;
+}
+
+.floating-item:hover {
+  transform: translateX(-4px);
+  background: rgba(0, 0, 0, 0.75);
 }
 
 /* Hide scrollbars but keep scrolling */

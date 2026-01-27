@@ -5,7 +5,7 @@ const apiRoute_1 = require("../../apiRoute");
 exports.default = (0, apiRoute_1.createAPIRoute)({
     meta: {
         path: "/eval",
-        methods: ["post"],
+        method: "post",
         summary: "Evaluate JavaScript code",
         description: "Executes arbitrary JavaScript code in an async context and returns the result along with captured console output.",
         category: "utility",

@@ -1,10 +1,9 @@
-# 📘 /channel/:channelId/messages
+# 📘 POST /channel/:channelId/messages
 
 > Send a message to a channel
 
 Send a message to a Discord channel. Supports content, embeds, and components (v1 & v2 format).
 
-**🛠 Methods:** `POST`
 **🏷 Tags:** discord, bot, action
 **📁 Source:** `\dist\routes\discord\channel\postmessages.js`
 

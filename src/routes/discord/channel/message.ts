@@ -4,7 +4,7 @@ import { createAPIRoute } from "../../../apiRoute";
 export default createAPIRoute({
   meta: {
     path: "/channels/:channelId/messages/:messageId",
-    methods: ["get"],
+    method: "get",
 
     summary: "Fetch a channel message",
     description:

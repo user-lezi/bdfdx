@@ -1,10 +1,9 @@
-# 📘 /user/:userId
+# 📘 GET /user/:userId
 
 > Fetch Discord user profile
 
 Fetches a user's public Discord profile and can optionally include mutual guilds or the raw Discord.js user object.
 
-**🛠 Methods:** `GET`
 **🏷 Tags:** discord, user
 **📁 Source:** `\dist\routes\discord\user.js`
 

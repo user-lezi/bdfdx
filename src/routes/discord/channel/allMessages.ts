@@ -5,7 +5,8 @@ import { fetchAllMessagesSafe } from "../../../utils";
 export default createAPIRoute({
   meta: {
     path: "/channels/:channelId/messages",
-    methods: ["post"],
+    method: "post",
+
     summary: "Fetch messages from a channel",
     description:
       "Fetches messages from a text channel. Supports pagination, user filtering, and full-history fetch when limit is omitted.",

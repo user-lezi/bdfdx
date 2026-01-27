@@ -3,7 +3,7 @@ import { createAPIRoute } from "../../apiRoute";
 export default createAPIRoute({
   meta: {
     path: "/user/:userId",
-    methods: ["get"],
+    method: "get",
 
     summary: "Fetch Discord user profile",
     description:

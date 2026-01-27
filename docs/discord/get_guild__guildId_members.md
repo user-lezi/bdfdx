@@ -1,10 +1,9 @@
-# 📘 /guild/:guildId/members
+# 📘 GET /guild/:guildId/members
 
 > Fetch guild members
 
 Returns members of a guild with optional filtering, sorting, and force-fetching from the Discord API.
 
-**🛠 Methods:** `GET`
 **🏷 Tags:** discord, guild, member
 **📁 Source:** `\dist\routes\discord\guild\members.js`
 

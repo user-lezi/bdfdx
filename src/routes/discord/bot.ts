@@ -4,7 +4,7 @@ import os from "os";
 export default createAPIRoute({
   meta: {
     path: "/bot",
-    methods: ["get"],
+    method: "get",
 
     summary: "Fetch bot information",
     description:

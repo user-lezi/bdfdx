@@ -318,7 +318,28 @@
         </div>
       </template>
     </div>
+    <!-- Floating Menu -->
+    <div class="fixed bottom-6 right-6 z-50">
+      <div
+        id="floating-menu"
+        class="hidden opacity-0 scale-90 transition-all duration-200 mb-3 flex flex-col gap-2"
+      >
+        <button data-link="/api-playground" class="floating-item">
+          API Playground
+        </button>
+      </div>
 
+      <button
+        id="floating-btn"
+        class="w-14 h-14 rounded-full flex items-center justify-center text-xl transition hover:-translate-y-1"
+        style="
+          background: rgb(var(--accent-rgb));
+          box-shadow: 0 10px 30px rgba(var(--accent-rgb), 0.35);
+        "
+      >
+        ☰
+      </button>
+    </div>
     <script src="script.js"></script>
   </body>
 </html>

@@ -1,11 +1,10 @@
-# 📘 /guild/:guildId
+# 📘 GET /guild/:guildId
 
-> Get guild info or leave guild
+> Get guild info
 
-Fetches a guild's public information or allows the bot to leave the guild.
+Fetches a guild's public information
 
-**🛠 Methods:** `GET`, `DELETE`
-**🏷 Tags:** discord, bot, guild, action
+**🏷 Tags:** discord, bot, guild
 **📁 Source:** `\dist\routes\discord\guild\guild.js`
 
 ### 📌 URL Parameters

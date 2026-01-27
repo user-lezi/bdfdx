@@ -1,0 +1,32 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <title>API Playground</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+
+    <link rel="stylesheet" href="style.css" />
+    <!-- Tailwind CDN -->
+    <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
+  </head>
+
+  <body class="flex items-center justify-center p-6 text-white">
+    <div class="flex h-screen scrollbar-hide">
+      <!-- Sidebar -->
+      <aside class="w-120 p-4 space-y-3 scrollbar-hide overflow-y-auto">
+        <h1 class="text-lg font-semibold mb-2">Endpoints</h1>
+        <div id="endpoint-list" class="space-y-2"></div>
+      </aside>
+
+      <!-- Main panel -->
+      <main class="flex-1 p-6 overflow-hidden max-h-17/20">
+        <section
+          id="endpoint-view"
+          class="hidden h-full bg-white/5 backdrop-blur-xl border border-white/10 rounded-2xl p-6 overflow-y-auto scrollbar-hide"
+        ></section>
+      </main>
+    </div>
+
+    <script src="./api-playground.js"></script>
+  </body>
+</html>

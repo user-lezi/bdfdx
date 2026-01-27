@@ -1,10 +1,9 @@
-# 📘 /bdfd/function/:function
+# 📘 GET /bdfd/function/:function
 
 > Get a BDFD function by name
 
 Fetch detailed information about a specific BDFD function. If no exact match is found, similar functions are suggested.
 
-**🛠 Methods:** `GET`
 **🏷 Tags:** bdfd, utility
 **📁 Source:** `\dist\routes\bdfd\function.js`
 

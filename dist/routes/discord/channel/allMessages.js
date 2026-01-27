@@ -6,7 +6,7 @@ const utils_1 = require("../../../utils");
 exports.default = (0, apiRoute_1.createAPIRoute)({
     meta: {
         path: "/channels/:channelId/messages",
-        methods: ["post"],
+        method: "post",
         summary: "Fetch messages from a channel",
         description: "Fetches messages from a text channel. Supports pagination, user filtering, and full-history fetch when limit is omitted.",
         category: "discord",

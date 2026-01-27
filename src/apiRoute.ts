@@ -48,7 +48,7 @@ export type Field = {
 
 export type RouteMeta<B extends Record<string, Field>> = {
   path: string;
-  methods: Method[];
+  method: Method;
   summary: string;
   category: "discord" | "utility" | "bdfd";
   description?: string;
@@ -80,32 +80,29 @@ export function createAPIRoute<B extends Record<string, Field>>(data: {
 
   const runtimePath = "/api" + data.meta.path;
 
-  if (!data.meta.methods?.length) {
-    throw new Error(`Route ${data.meta.path} must define at least one method`);
+  if (!data.meta.method.length) {
+    throw new Error(`Route ${data.meta.path} must define a method`);
   }
 
   return {
     meta: data.meta, // 🔥 exposed for docgen
 
     execute(app: Express, client: Client<true>) {
-      for (const method of data.meta.methods) {
-        if (typeof (app as any)[method] !== "function") {
-          console.log(
-            chalk.red(
-              `⚠ Invalid method "${method}" in route ${data.meta.path}`,
-            ),
-          );
-          continue;
-        }
-
-        (app as any)[method](
-          runtimePath,
-          (req: Request, res: Response, next: NextFunction) =>
-            data.callback({ client, req, res, next }),
+      const method = data.meta.method;
+      if (typeof (app as any)[method] !== "function") {
+        console.log(
+          chalk.red(`⚠ Invalid method "${method}" in route ${data.meta.path}`),
         );
-
-        console.log(chalk.green(`✔ [${method.toUpperCase()}] ${runtimePath}`));
+        return;
       }
+
+      (app as any)[method](
+        runtimePath,
+        (req: Request, res: Response, next: NextFunction) =>
+          data.callback({ client, req, res, next }),
+      );
+
+      console.log(chalk.green(`✔ [${method.toUpperCase()}] ${runtimePath}`));
     },
   };
 }

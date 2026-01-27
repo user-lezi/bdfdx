@@ -3,7 +3,7 @@ import { createAPIRoute } from "../../../apiRoute";
 export default createAPIRoute({
   meta: {
     path: "/guild/:guildId/members",
-    methods: ["get"],
+    method: "get",
 
     summary: "Fetch guild members",
     description:

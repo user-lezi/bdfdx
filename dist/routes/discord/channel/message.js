@@ -5,7 +5,7 @@ const apiRoute_1 = require("../../../apiRoute");
 exports.default = (0, apiRoute_1.createAPIRoute)({
     meta: {
         path: "/channels/:channelId/messages/:messageId",
-        methods: ["get"],
+        method: "get",
         summary: "Fetch a channel message",
         description: "Fetches a specific message from a text channel by channel ID and message ID.",
         category: "discord",

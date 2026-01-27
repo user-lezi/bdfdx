@@ -1,10 +1,9 @@
-# 📘 /channels/:channelId/messages/:messageId
+# 📘 GET /channels/:channelId/messages/:messageId
 
 > Fetch a channel message
 
 Fetches a specific message from a text channel by channel ID and message ID.
 
-**🛠 Methods:** `GET`
 **🏷 Tags:** discord, message
 **📁 Source:** `\dist\routes\discord\channel\message.js`
 

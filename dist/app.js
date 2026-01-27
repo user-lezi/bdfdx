@@ -15,6 +15,9 @@ async function createApp(client, config) {
     app.get("/", (req, res) => {
         res.sendFile("panel/index.html");
     });
+    app.get("/api-playground", (req, res) => {
+        res.sendFile(process.cwd() + "/panel/api-playground.html");
+    });
     // Password Checker
     app.get("/password", (req, res) => {
         const headerPass = req.headers.password;

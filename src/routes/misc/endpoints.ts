@@ -4,7 +4,7 @@ import { createAPIRoute } from "../../apiRoute";
 export default createAPIRoute({
   meta: {
     path: "/endpoints",
-    methods: ["get"],
+    method: "get",
 
     summary: "List all API endpoints",
     description:
