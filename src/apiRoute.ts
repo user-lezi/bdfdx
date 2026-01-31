@@ -36,7 +36,10 @@ export type Tags =
   | "action"
 
   /** BDFD-related endpoints */
-  | "bdfd";
+  | "bdfd"
+
+  /** Image-related endpoints */
+  | "image";
 
 export type Field = {
   type: "string" | "number" | "boolean" | "array" | "object" | "enum";
