@@ -15,3 +15,4 @@
 - [POST /dapi](./discord/post_dapi.md)
 - [GET /endpoints](./utility/get_endpoints.md)
 - [POST /eval](./utility/post_eval.md)
+- [POST /fetch](./utility/post_fetch.md)
