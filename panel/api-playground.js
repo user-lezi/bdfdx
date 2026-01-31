@@ -38,6 +38,7 @@ function renderEndpoints() {
 
 /* ---------- open endpoint ---------- */
 function openEndpoint(ep) {
+  let requestBody = null;
   listSection.classList.add("hidden");
   viewEndpointSection.classList.remove("hidden");
 
