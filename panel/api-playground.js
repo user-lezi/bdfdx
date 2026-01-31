@@ -3,219 +3,278 @@ let endpoints = [];
 let password = localStorage.getItem("panelAuth");
 if (!password) redirectToPanel();
 
-const listEl = document.getElementById("endpoint-list");
-const viewEl = document.getElementById("endpoint-view");
+const listSection = document.getElementById("endpoint-list");
+const listEl = listSection.querySelector("div");
+const viewEndpointSection = document.getElementById("endpoint-view");
 
-/* ---------- sidebar ---------- */
+/* ---------- list ---------- */
 function renderEndpoints() {
-  endpoints.forEach((ep) => {
+  let deltaTime = 100;
+  let i = 0;
+  for (const ep of endpoints) {
     const btn = document.createElement("button");
     btn.className = `
-    w-full text-left p-4 rounded-xl
-    bg-black/40 border border-white/10
+    opacity-0 w-full text-left p-4 rounded-xl
+    bg-black/40 border border-white/12
     hover:bg-black/60 hover:border-[rgba(var(--accent-rgb),0.4)]
     transition
   `;
     btn.innerHTML = `
-    <div class="text-xs text-white/50">${ep.method}</div>
+    <div class="text-xs text-white/50">${ep.method.toUpperCase()}</div>
     <div class="font-mono text-sm">${ep.path}</div>
     <div class="text-xs text-white/60">${ep.summary}</div>
   `;
     btn.onclick = () => openEndpoint(ep);
     listEl.appendChild(btn);
-  });
+    setTimeout(
+      () => {
+        btn.classList.remove("opacity-0");
+      },
+      500 + i * deltaTime,
+    );
+    i++;
+  }
 }
 
-/* ---------- endpoint view ---------- */
-
+/* ---------- open endpoint ---------- */
 function openEndpoint(ep) {
-  viewEl.classList.remove("hidden");
+  listSection.classList.add("hidden");
+  viewEndpointSection.classList.remove("hidden");
 
-  let url = "/api" + ep.path;
-  function quotesc(s) {
-    return s.replaceAll("'", "\'");
+  const tpl = document.getElementById("opened-endpoint-template");
+  const node = tpl.content.cloneNode(true);
+
+  const path = "/api" + ep.path;
+
+  node.getElementById("summary").textContent = ep.summary;
+  node.getElementById("description").textContent = ep.description;
+
+  let params = {};
+  let apiquery = {};
+
+  const updateDisplayUrl = () => {
+    const url = generateUrl(path, params, apiquery);
+    (
+      node.getElementById("display-url") ??
+      document.getElementById("display-url") ??
+      {}
+    ).value = url;
+  };
+  if ("params" in ep) {
+    const paramform = node.getElementById("params-form");
+
+    for (const [key, value] of Object.entries(ep.params)) {
+      let label = document.createElement("label");
+      label.className =
+        "block font-mono mb-2.5 text-sm font-medium text-heading";
+      label.textContent = ":" + key;
+
+      let input = document.createElement("input");
+      input.type = "text";
+      input.dataset.key = key;
+      input.placeholder = value.example ?? "";
+
+      input.className = `
+        bg-black/30 text-white/90
+        border border-white/20
+        focus:border-[rgb(var(--accent-rgb))]
+        focus:ring-1 focus:ring-[rgb(var(--accent-rgb))]/30
+        appearance-none
+        rounded-md block w-full
+        px-3 py-2.5
+      `;
+
+      input.addEventListener("input", (e) => {
+        params[key] = e.target.value;
+        updateDisplayUrl();
+      });
+
+      let helperText = document.createElement("p");
+      helperText.textContent = value.description;
+      helperText.className = "mt-2.5 text-sm text-body";
+
+      let inputDiv = document.createElement("div");
+      inputDiv.className = "mb-2";
+      inputDiv.appendChild(label);
+      inputDiv.appendChild(input);
+      inputDiv.appendChild(helperText);
+
+      paramform.appendChild(inputDiv);
+    }
+
+    paramform.classList.remove("hidden");
   }
-  viewEl.innerHTML = `
-    <div class="space-y-6">
 
-      <div>
-        <h2 class="text-xl font-semibold">${ep.summary}</h2>
-        <p class="text-white/60 text-sm">${ep.description}</p>
-      </div>
-      <hr>
-      <!-- Params -->
-      <div class="space-y-3">
-        ${"params" in ep ? "<p>URL Parameters</p>" : ""} 
-        ${Object.entries(ep.params || {})
-          .map(
-            ([name, p]) => `
-          <div>
-            <label class="text-xs text-white/50">${name.toLocaleUpperCase()}</label>
-            <input
-              data-param="${name}"
-              placeholder='${quotesc(p.example) || ""}'
-              class="
-                w-full rounded-xl px-4 py-2.5
-                bg-black/40 border border-white/15
-                text-sm font-mono
-                focus:outline-none
-                focus:border-[rgba(var(--accent-rgb),0.7)]
-              "
-            />
-          </div>
-        `,
-          )
-          .join("")}
-      </div>
-      <!-- Query -->
-      <div class="space-y-3">
-        ${"query" in ep ? "<p>URL Query</p>" : ""} 
-        ${Object.entries(ep.query || {})
-          .map(
-            ([name, p]) => `
-          <div>
-            <label class="text-xs text-white/50">${name.toLocaleUpperCase()}</label>
-            <input
-              data-query="${name}"
-              placeholder='${quotesc(p.example) || ""}'
-              class="
-                w-full rounded-xl px-4 py-2.5
-                bg-black/40 border border-white/15
-                text-sm font-mono
-                focus:outline-none
-                focus:border-[rgba(var(--accent-rgb),0.7)]
-              "
-            />
-          </div>
-        `,
-          )
-          .join("")}
-      </div>
-      <!-- Body -->
-      <div class="space-y-3">
-        ${"body" in ep ? "<p>URL Body</p>" : ""} 
-        ${Object.entries(ep.body || {})
-          .map(
-            ([name, p]) => `
-          <div>
-            <label class="text-xs text-white/50">${name.toLocaleUpperCase()}</label>
-            <input
-              data-body="${name}"
-              placeholder='${quotesc(typeof p.example == "object" ? JSON.stringify(p.example) : p.example) || ""}'
-              class="
-                w-full rounded-xl px-4 py-2.5
-                bg-black/40 border border-white/15
-                text-sm font-mono
-                focus:outline-none
-                focus:border-[rgba(var(--accent-rgb),0.7)]
-              "
-            />
-          </div>
-        `,
-          )
-          .join("")}
-      </div>
+  if ("query" in ep) {
+    const queryform = node.getElementById("query-form");
 
-      <!-- URL preview -->
-      <div
-        id="url-preview"
-        class="px-4 py-2 rounded-xl bg-black/50 border border-white/10 font-mono text-sm break-all"
-      >
-        ${url}
-      </div>
-      
-      <!-- Actions -->
-      <div class="flex gap-2">
-        <button
-          id="try-btn"
-          class="bg-[rgb(var(--accent-rgb))] text-black font-medium rounded-xl px-4 py-2 hover:brightness-110 transition"
-        >
-          Try
-        </button>
-      </div>
-      <hr>
-      <!-- Response -->
-      <div
-        id="response"
-        class="hidden bg-black/60 border border-white/10 rounded-2xl p-4"
-      >
-      <div class="flex gap-2">
-        <span
-        id="res-status"
-          class="bg-[rgb(var(--accent-rgb))] font-medium rounded-xl px-4 py-2 hover:brightness-110 transition"
-        >
-          Status: X
-        </span>
-        <span
-        id="res-time"
-          class="bg-[rgb(var(--accent-rgb))] font-medium rounded-xl px-4 py-2 hover:brightness-110 transition"
-        >
-          -1ms
-        </span>
-      </div>
-        <pre class="text-sm font-mono whitespace-pre-wrap"></pre>
-      </div>
+    for (const [key, value] of Object.entries(ep.query)) {
+      let label = document.createElement("label");
+      label.className =
+        "block font-mono mb-2.5 text-sm font-medium text-heading";
+      label.textContent = key;
 
-    </div>
+      let input = document.createElement("input");
+      input.type = value.type == "number" ? "number" : "text";
+      input.dataset.key = key;
+      input.placeholder = value.example ?? "";
+
+      input.className = `
+        bg-black/30 text-white/90
+        border border-white/20
+        focus:border-[rgb(var(--accent-rgb))]
+        focus:ring-1 focus:ring-[rgb(var(--accent-rgb))]/30
+        appearance-none
+        rounded-md block w-full
+        px-3 py-2.5
+      `;
+
+      input.addEventListener("input", (e) => {
+        apiquery[key] = e.target.value;
+        updateDisplayUrl();
+      });
+
+      let helperText = document.createElement("p");
+      helperText.textContent = value.description;
+      helperText.className = "mt-2.5 text-sm text-body";
+
+      let inputDiv = document.createElement("div");
+      inputDiv.className = "mb-2";
+      inputDiv.appendChild(label);
+      inputDiv.appendChild(input);
+      inputDiv.appendChild(helperText);
+
+      queryform.appendChild(inputDiv);
+    }
+
+    queryform.classList.remove("hidden");
+  }
+
+  if ("body" in ep) {
+    const bodyForm = node.getElementById("body-form");
+
+    let textarea = document.createElement("textarea");
+    textarea.rows = 10;
+
+    textarea.className = `
+    bg-black/30 text-white/90
+    border border-white/20
+    focus:border-[rgb(var(--accent-rgb))]
+    focus:ring-1 focus:ring-[rgb(var(--accent-rgb))]/30
+    appearance-none
+    rounded-md block w-full
+    px-3 py-2.5
+    font-mono text-sm
   `;
 
-  const preview = viewEl.querySelector("#url-preview");
-  const Pinputs = viewEl.querySelectorAll("input[data-param]") || [];
-  const Qinputs = viewEl.querySelectorAll("input[data-query]") || [];
-  const responseBox = viewEl.querySelector("#response");
-  const pre = responseBox.querySelector("pre");
-  const resTime = responseBox.querySelector("#res-time");
-  const resStatus = responseBox.querySelector("#res-status");
-
-  function generateUrl() {
-    let newUrl = "/api" + ep.path;
-    Pinputs.forEach((i) => {
-      newUrl = newUrl.replace(
-        `:${i.dataset.param}`,
-        i.value || `:${i.dataset.param}`,
-      );
-    });
-    let q = new URLSearchParams();
-    Qinputs.forEach((i) => {
-      if (i.value) q.set(i.dataset.query, i.value);
-    });
-    if (q.size) newUrl = newUrl + "?" + q.toString();
-    return newUrl;
-  }
-  [...Pinputs, ...Qinputs].forEach((input) => {
-    input.addEventListener("input", () => {
-      let newUrl = generateUrl();
-      preview.textContent = newUrl;
-    });
-  });
-
-  /* Try */
-  viewEl.querySelector("#try-btn").onclick = async () => {
-    let result = {};
-    let start = performance.now();
-    let res = await fetch(generateUrl(), {
-      headers: { password, "Content-Type": "application/json" },
-      method: ep.method.toUpperCase(),
-    });
-    try {
-      result.data = await res.json().catch(() => res.text());
-    } catch (e) {
-      result.data = e;
+    let placeholderJSON = {};
+    for (const [key, value] of Object.entries(ep.body)) {
+      placeholderJSON[key] = value.example;
     }
-    result.status = res.status;
-    result.time = performance.now() - start;
-    console.log(`Made an request:`, result, res);
-    pre.textContent =
-      "object" == typeof result.data
-        ? JSON.stringify(result.data, null, 2)
-        : result.data;
-    resTime.textContent = result.time.toFixed(2) + " ms";
-    resStatus.textContent = `Status: ${result.status}`;
+    textarea.placeholder = JSON.stringify(placeholderJSON, null, 2);
 
-    responseBox.classList.remove("hidden");
+    let helperText = document.createElement("p");
+    helperText.textContent = ep.body.description ?? "Request payload (JSON)";
+    helperText.className = "mt-2.5 text-sm text-body";
+
+    let errorText = document.createElement("p");
+    errorText.className = "mt-2 text-sm text-red-400 hidden";
+
+    textarea.addEventListener("input", () => {
+      try {
+        requestBody = textarea.value ? JSON.parse(textarea.value) : null;
+        textarea.classList.remove("border-red-400");
+        errorText.classList.add("hidden");
+      } catch (err) {
+        requestBody = null;
+        textarea.classList.add("border-red-400");
+        errorText.textContent = "Invalid JSON";
+        errorText.classList.remove("hidden");
+      }
+    });
+
+    let bodyDiv = document.createElement("div");
+    bodyDiv.className = "mb-4";
+    bodyDiv.appendChild(textarea);
+    bodyDiv.appendChild(helperText);
+    bodyDiv.appendChild(errorText);
+
+    bodyForm.appendChild(bodyDiv);
+    bodyForm.classList.remove("hidden");
+  }
+
+  updateDisplayUrl();
+
+  node.getElementById("copy-url-btn").onclick = () =>
+    navigator.clipboard.writeText(generateUrl(path, params, apiquery));
+
+  node.getElementById("endpoint-back-btn").onclick = () => {
+    listSection.classList.remove("hidden");
+    viewEndpointSection.classList.add("hidden");
+    viewEndpointSection.innerHTML = "";
   };
 
-  /* Copy */
+  // endpoint runner
+
+  const btn = node.getElementById("make-request-btn");
+  const outputBox = node.getElementById("response-box");
+  const output = node.getElementById("response-output");
+  btn.onclick = async () => {
+    const url = generateUrl(path, params, apiquery);
+
+    btn.disabled = true;
+    btn.textContent = "Sending...";
+    outputBox.classList.add("hidden");
+
+    try {
+      const res = await fetch(url, {
+        method: ep.method.toUpperCase(),
+        headers: {
+          "Content-Type": "application/json",
+          password,
+        },
+        body:
+          ep.method !== "GET" &&
+          typeof requestBody !== "object" &&
+          requestBody !== null
+            ? JSON.stringify(requestBody)
+            : undefined,
+      });
+
+      let text;
+      const contentType = res.headers.get("content-type") || "";
+
+      if (contentType.includes("application/json")) {
+        text = JSON.stringify(await res.json(), null, 2);
+      } else {
+        text = await res.text();
+      }
+
+      output.textContent = `Status: ${res.status} ${res.statusText}\n\n` + text;
+
+      outputBox.classList.remove("hidden");
+    } catch (err) {
+      output.textContent = `Request failed:\n\n${err.message}`;
+      outputBox.classList.remove("hidden");
+    } finally {
+      btn.disabled = false;
+      btn.textContent = "Send Request";
+    }
+  };
+
+  viewEndpointSection.appendChild(node);
+}
+
+function generateUrl(base, params = {}, apiquery = {}) {
+  for (const [key, value] of Object.entries(params)) {
+    base = base.replace(`/:${key}`, "/" + value);
+  }
+  let q = new URLSearchParams();
+  for (const [key, value] of Object.entries(apiquery)) {
+    if (value) q.append(key, value);
+  }
+  if (q.size) base += `?${q.toString()}`;
+  return base;
 }
 
 function redirectToPanel() {
@@ -230,9 +289,9 @@ window.onload = async () => {
       if (!r.ok) return redirectToPanel();
       return r.json();
     })
-    .then((e) => {
+    .then(async (e) => {
       endpoints = Object.values(e);
-      renderEndpoints();
+      await renderEndpoints();
     })
     .catch(redirectToPanel);
 
@@ -297,4 +356,8 @@ async function extractAccentColor(src) {
 
     img.onerror = () => resolve("rgb(88,101,242)");
   });
+}
+
+function sleep(ms) {
+  return new Promise((resolve) => setTimeout(() => resolve(), ms));
 }
