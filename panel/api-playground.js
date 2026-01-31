@@ -236,7 +236,7 @@ function openEndpoint(ep) {
         },
         body:
           ep.method !== "GET" &&
-          typeof requestBody !== "object" &&
+          typeof requestBody == "object" &&
           requestBody !== null
             ? JSON.stringify(requestBody)
             : undefined,
