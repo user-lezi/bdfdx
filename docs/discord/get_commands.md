@@ -1,15 +1,15 @@
-# 📘 GET /bot
+# 📘 GET /commands
 
-> Fetch bot information
+> List registered application commands
 
-Returns public bot identity, application metadata, runtime statistics, and environment information.
+Returns bot's application commands and it's information.
 
 **🏷 Tags:** discord, bot, utility
-**📁 Source:** `\dist\routes\discord\client\bot.js`
+**📁 Source:** `\dist\routes\discord\client\slash.js`
 
 ### 🧪 Example 1
 ```http
-GET /api/bot
+GET /api/commands
 ```
 #### Response
 ```json

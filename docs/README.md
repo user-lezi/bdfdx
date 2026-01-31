@@ -2,10 +2,11 @@
 
 - [GET /bdfd/function/:function](./bdfd/get_bdfd_function__function.md)
 - [GET /bdfd/functions](./bdfd/get_bdfd_functions.md)
-- [GET /bot](./discord/get_bot.md)
 - [POST /channels/:channelId/messages](./discord/post_channels__channelId_messages.md)
 - [GET /channels/:channelId/messages/:messageId](./discord/get_channels__channelId_messages__messageId.md)
 - [POST /channel/:channelId/messages](./discord/post_channel__channelId_messages.md)
+- [GET /bot](./discord/get_bot.md)
+- [GET /commands](./discord/get_commands.md)
 - [GET /guild/:guildId](./discord/get_guild__guildId.md)
 - [GET /guilds](./discord/get_guilds.md)
 - [DELETE /guild/:guildId](./discord/delete_guild__guildId.md)
