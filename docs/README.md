@@ -3,6 +3,8 @@
 - [GET /bdfd/function/:function](./bdfd/get_bdfd_function__function.md)
 - [GET /bdfd/functions](./bdfd/get_bdfd_functions.md)
 - [POST /channels/:channelId/messages](./discord/post_channels__channelId_messages.md)
+- [DELETE /channels/:channelId/messages/:messageId](./discord/delete_channels__channelId_messages__messageId.md)
+- [POST /channels/:channelId/messages/:messageId/edit](./discord/post_channels__channelId_messages__messageId_edit.md)
 - [GET /channels/:channelId/messages/:messageId](./discord/get_channels__channelId_messages__messageId.md)
 - [POST /channel/:channelId/messages](./discord/post_channel__channelId_messages.md)
 - [GET /bot](./discord/get_bot.md)
