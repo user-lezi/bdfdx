@@ -1,156 +1,435 @@
-// Utility functions
-const $ = (id) => document.getElementById(id);
-const show = (el) => (el.style.display = "flex");
-const hide = (el) => (el.style.display = "none");
-
-// Calculate dominant color from avatar
-async function extractAccentColor(imgUrl) {
-  return new Promise((resolve) => {
-    const img = new Image();
-    img.crossOrigin = "anonymous";
-    img.src = imgUrl;
-
-    img.onload = () => {
-      const canvas = document.createElement("canvas");
-      const ctx = canvas.getContext("2d");
-      canvas.width = img.width;
-      canvas.height = img.height;
-      ctx.drawImage(img, 0, 0);
-
-      const data = ctx.getImageData(0, 0, canvas.width, canvas.height).data;
-
-      let r = 0,
-        g = 0,
-        b = 0,
-        count = 0;
-      for (let i = 0; i < data.length; i += 4 * 50) {
-        // sample every 50px
-        r += data[i];
-        g += data[i + 1];
-        b += data[i + 2];
-        count++;
-      }
-
-      resolve(
-        `rgb(${Math.floor(r / count)}, ${Math.floor(g / count)}, ${Math.floor(b / count)})`,
-      );
-    };
-
-    img.onerror = () => resolve("#5865f2"); // fallback
+function show(el) {
+  el.classList.remove("hidden");
+  requestAnimationFrame(() => {
+    el.classList.remove("opacity-0", "scale-90");
   });
 }
 
-// Validate password
-async function validatePassword(input) {
-  const pw = input ?? $("password-input").value;
+function hide(el) {
+  el.classList.add("opacity-0", "scale-90");
+  setTimeout(() => el.classList.add("hidden"), 300);
+}
 
+const PANELS = {
+  login: "password-screen",
+  panel: "panel",
+  guild: "guild-panel",
+  user: "user-panel",
+};
+
+let __p = null;
+
+function showPanel(name) {
+  const id = PANELS[name] ?? name;
+  if (__p === id) return;
+
+  console.log("[ui] showPanel:", id);
+
+  for (const pid of Object.values(PANELS)) {
+    const el = document.getElementById(pid);
+    if (!el) continue;
+    pid === id ? show(el) : hide(el);
+  }
+
+  __p = id;
+}
+
+function fetchAPI(url, password, method = "GET", options = {}) {
+  return fetch(url, { method, headers: { password }, ...options });
+}
+
+let CurrentAccentColor;
+let AccentColorCache = {};
+let BotData;
+let BotGuilds;
+let currentPage = 1;
+
+function setAccentColor(color) {
+  if (color === CurrentAccentColor) return;
+  CurrentAccentColor = color;
+
+  let [r, g, b] = color.match(/\d+/g).map(Number);
+  const lum = 0.2126 * r + 0.7152 * g + 0.0722 * b;
+
+  if (lum > 180) {
+    const k = 180 / lum;
+    r = (r * k) | 0;
+    g = (g * k) | 0;
+    b = (b * k) | 0;
+  }
+
+  document.documentElement.style.setProperty(
+    "--accent-rgb",
+    `${r}, ${g}, ${b}`,
+  );
+
+  console.log("[accent]", r, g, b);
+}
+
+async function extractAccentColor(src, refresh = false) {
+  if (AccentColorCache[src] && !refresh) return AccentColorCache[src];
+
+  return new Promise((resolve) => {
+    const img = new Image();
+    img.crossOrigin = "anonymous";
+    img.src = src;
+
+    img.onload = () => {
+      const c = document.createElement("canvas");
+      const x = c.getContext("2d");
+      c.width = img.width;
+      c.height = img.height;
+      x.drawImage(img, 0, 0);
+
+      const d = x.getImageData(0, 0, c.width, c.height).data;
+      let r = 0,
+        g = 0,
+        b = 0,
+        n = 0;
+
+      for (let i = 0; i < d.length; i += 200) {
+        r += d[i];
+        g += d[i + 1];
+        b += d[i + 2];
+        n++;
+      }
+
+      resolve(`rgb(${(r / n) | 0}, ${(g / n) | 0}, ${(b / n) | 0})`);
+    };
+
+    img.onerror = () => resolve("rgb(88,101,242)");
+  }).then((c) => (AccentColorCache[src] = c));
+}
+
+async function validatePassword(pw) {
   try {
-    const res = await fetch(`/password?password=${pw}`);
-    const data = await res.json();
-
-    if (data.valid) {
-      localStorage.setItem("panelAuth", pw);
-      loadPanel();
-    } else {
-      $("error").style.display = "block";
-    }
+    const r = await fetch(`/password?password=${encodeURIComponent(pw)}`);
+    return (await r.json()).valid === true;
   } catch {
-    $("error").innerText = "API Error";
-    $("error").style.display = "block";
+    return false;
   }
 }
 
-// Load main panel
-function loadPanel() {
-  hide($("password-screen"));
-  show($("panel"));
-  fetchBotData();
+function logout() {
+  console.log("[auth] logout");
+  localStorage.removeItem("panelAuth");
+  history.replaceState({}, "", "?");
+  showPanel("login");
 }
 
-// Fetch bot data
+async function submitPassword() {
+  const pw = document.getElementById("password-input").value;
+  if (!(await validatePassword(pw))) return;
+
+  localStorage.setItem("panelAuth", pw);
+  history.replaceState({}, "", "?tab=panel");
+  loadPanel();
+}
+
+function loadPanel() {
+  console.log("[panel] load");
+  showPanel("panel");
+  fetchBotData();
+  loadGuilds();
+}
+
 async function fetchBotData() {
   const pw = localStorage.getItem("panelAuth");
   if (!pw) return;
 
-  await validatePassword(pw); // ensure valid
+  console.log("[bot] fetching");
 
-  try {
-    const res = await fetch(`/api/bot?password=${pw}`);
-    const bot = await res.json();
+  BotData ??= await fetchAPI("/api/bot", pw).then((r) => r.json());
 
-    // Fill UI
-    $("bot-name").innerText = bot.user.tag ?? "Unknown Bot";
-    $("bot-desc").innerText = bot.application.description ?? "No description";
+  document.getElementById("bot-name").textContent =
+    BotData.user?.tag ?? "Unknown";
+  document.getElementById("bot-desc").textContent =
+    BotData.application?.description ?? "";
+  document.getElementById("bot-avatar").src = BotData.user.avatar;
 
-    // Avatar + accent color
-    $("bot-avatar").src = bot.user.avatar;
-    const accent = await extractAccentColor(bot.user.avatar);
-    document.documentElement.style.setProperty("--accent-color", accent);
+  extractAccentColor(BotData.user.avatar).then(setAccentColor);
 
-    // Banner (fallback to generated)
-    if (bot.user.banner) {
-      $("bot-banner").src = bot.user.banner;
-    } else {
-      // Generate gradient banner using accent
-      const banner = document.createElement("canvas");
-      banner.width = 600;
-      banner.height = 200;
-      const ctx = banner.getContext("2d");
-
-      const grad = ctx.createLinearGradient(0, 0, banner.width, banner.height);
-      grad.addColorStop(0, accent);
-      grad.addColorStop(1, "#000");
-      ctx.fillStyle = grad;
-      ctx.fillRect(0, 0, banner.width, banner.height);
-
-      $("bot-banner").src = banner.toDataURL();
-    }
-
-    // Invite button
-    $("invite-btn").onclick = () =>
-      window.open(
-        `https://discord.com/oauth2/authorize?client_id=${bot.user.id}`,
-        "_blank",
-      );
-
-    // Stats
-    $("guilds").innerText = bot.stats.guilds ?? 0;
-    $("members").innerText = bot.stats.users ?? 0;
-
-    updateUptime(bot.stats.uptime ?? 0);
-    document.title = `${bot.user.username} Panel`;
-  } catch (err) {
-    $("guilds").innerText = "ERR";
-    $("members").innerText = "ERR";
+  if (BotData.user.banner) {
+    document.getElementById("bot-banner").src = BotData.user.banner;
   }
+
+  document.getElementById("guilds").textContent = BotData.stats?.guilds ?? 0;
+  document.getElementById("members").textContent = BotData.stats?.users ?? 0;
+
+  updateUptime(BotData.stats?.uptime ?? 0);
+  document.title = `${BotData.user.username} Panel`;
 }
 
-// Uptime formatter
-function updateUptime(initial) {
-  let ms = initial;
+function updateUptime(ms) {
+  const el = document.getElementById("uptime");
 
   const fmt = (ms) => {
     const s = ms / 1000;
+    if (s < 60) return `${s.toFixed(1)}s`;
     const m = s / 60;
+    if (m < 60) return `${m.toFixed(1)}m`;
     const h = m / 60;
-    const d = h / 24;
-    return d >= 1
-      ? `${d.toFixed(1)}d`
-      : h >= 1
-        ? `${h.toFixed(1)}h`
-        : m >= 1
-          ? `${m.toFixed(1)}m`
-          : `${s.toFixed(1)}s`;
+    if (h < 24) return `${h.toFixed(1)}h`;
+    return `${(h / 24).toFixed(1)}d`;
   };
 
+  el.textContent = fmt(ms);
+
   setInterval(() => {
-    ms += 1000;
-    $("uptime").innerText = fmt(ms);
-  }, 1000);
+    ms += 10_000;
+    el.textContent = fmt(ms);
+  }, 10_000);
 }
 
-// On page load
-window.onload = () => {
-  show($("password-screen"));
-  if (localStorage.getItem("panelAuth")) loadPanel();
+function guildsPerPage() {
+  return innerWidth <= 900 ? 8 : 9;
+}
+
+window.addEventListener("resize", () => {
+  renderGuildsPage(currentPage);
+});
+
+async function loadGuilds() {
+  const pw = localStorage.getItem("panelAuth");
+  if (!pw) return;
+
+  console.log("[guilds] fetching");
+
+  BotGuilds ??= await fetchAPI("/api/guilds", pw).then((r) => r.json());
+  renderGuildsPage(currentPage);
+}
+
+function renderGuildsPage(page) {
+  const list = document.getElementById("guild-list");
+  if (!list || !BotGuilds) return;
+
+  list.innerHTML = "";
+
+  const perPage = guildsPerPage();
+  const pages = Math.ceil(BotGuilds.length / perPage);
+  currentPage = Math.min(Math.max(page, 1), pages);
+
+  const start = (currentPage - 1) * perPage;
+  const slice = BotGuilds.slice(start, start + perPage);
+  const tpl = document.getElementById("guild-card-template");
+
+  for (const g of slice) {
+    const node = tpl.content.cloneNode(true);
+    node.querySelector(".guild-icon").src = g.icon ?? "/fallback-guild.png";
+    node.querySelector(".guild-name").textContent = g.name;
+    node.querySelector(".guild-id").textContent = g.id;
+    node.querySelector(".guild-open").onclick = () => openGuild(g);
+    list.appendChild(node);
+  }
+
+  renderPaginationControls(pages);
+}
+
+function renderPaginationControls(pages) {
+  let c = document.getElementById("guild-pagination");
+  if (!c) {
+    c = document.createElement("div");
+    c.id = "guild-pagination";
+    c.className = "flex justify-center gap-3 mt-4";
+    document.getElementById("panel").appendChild(c);
+  }
+
+  c.innerHTML = "";
+  if (pages <= 1) return;
+
+  const btn = (t, d, fn) => {
+    const b = document.createElement("button");
+    b.textContent = t;
+    b.disabled = d;
+    b.onclick = fn;
+    b.className = "px-3 py-1 rounded-lg bg-white/10 disabled:opacity-40";
+    return b;
+  };
+
+  c.append(
+    btn("◀", currentPage === 1, () => renderGuildsPage(--currentPage)),
+    document.createTextNode(` Page ${currentPage}/${pages} `),
+    btn("▶", currentPage === pages, () => renderGuildsPage(++currentPage)),
+  );
+}
+
+function openGuild(g, push = true) {
+  console.log("[guild] open", g.id);
+
+  if (push) {
+    history.pushState({}, "", `?tab=manage-guild&id=${g.id}`);
+  }
+
+  showPanel("guild");
+
+  document.getElementById("guild-name-header").textContent = g.name;
+  document.getElementById("guild-id-header").textContent = `ID: ${g.id}`;
+
+  const icon = document.getElementById("guild-icon");
+  icon.src = g.icon ?? "/fallback-guild.png";
+  extractAccentColor(icon.src).then(setAccentColor);
+
+  const pw = localStorage.getItem("panelAuth");
+  const content = document.getElementById("guild-content");
+  content.textContent = "Loading…";
+
+  fetchAPI(`/api/guild/${g.id}`, pw)
+    .then((r) => r.json())
+    .then((d) => {
+      const tpl = document.getElementById("guild-info-template");
+      const node = tpl.content.cloneNode(true);
+
+      if (d.banner) document.getElementById("guild-banner").src = g.banner;
+      else document.getElementById("guild-banner").classList.add("hidden");
+
+      node.querySelector("[data-members]").textContent = d.count?.members ?? 0;
+      node.querySelector("[data-channels]").textContent =
+        d.count?.channels ?? 0;
+      node.querySelector("[data-roles]").textContent = d.count?.roles ?? 0;
+      node.querySelector("[data-emojis]").textContent = d.count?.emojis ?? 0;
+
+      node.querySelector("[data-created]").textContent = d.dates?.created
+        ? new Date(d.dates.created).toLocaleDateString()
+        : "Unknown";
+
+      node.querySelector("[data-joined]").textContent = d.dates?.joined
+        ? new Date(d.dates.joined).toLocaleDateString()
+        : "Unknown";
+
+      node.querySelector("[data-owner-btn]").onclick = () =>
+        openUserPanel(d.owner.id);
+
+      node.querySelector("[data-leave-btn]").onclick = async () => {
+        if (!confirm(`Leave ${g.name}?`)) return;
+        await fetchAPI(`/api/guild/${g.id}`, pw, "DELETE");
+        BotGuilds = BotGuilds.filter((x) => x.id !== g.id);
+        history.replaceState({}, "", "?tab=panel");
+        loadPanel();
+      };
+
+      content.innerHTML = "";
+      content.appendChild(node);
+    });
+}
+
+function openUserPanel(id, push = true) {
+  console.log("[user] open", id);
+
+  if (push) {
+    history.pushState({}, "", `?tab=view-user&id=${id}`);
+  }
+
+  showPanel("user");
+
+  const content = document.getElementById("user-content");
+  content.textContent = "Loading…";
+
+  const pw = localStorage.getItem("panelAuth");
+
+  fetchAPI(`/api/user/${id}?mutualGuilds=true`, pw)
+    .then((r) => r.json())
+    .then((u) => {
+      extractAccentColor(u.avatar).then(setAccentColor);
+
+      document.getElementById("user-avatar").src = u.avatar;
+      if (u.banner) document.getElementById("user-banner").src = u.banner;
+      else document.getElementById("user-banner").classList.add("hidden");
+
+      document.getElementById("user-id").textContent = `ID: ${u.id}`;
+      document.getElementById("user-name").textContent = !u.bot
+        ? `@${u.username}`
+        : u.tag;
+
+      const tpl = document.getElementById("user-info-template");
+      const node = tpl.content.cloneNode(true);
+
+      node.querySelector("[data-created]").textContent = new Date(
+        u.createdTimestamp,
+      ).toLocaleDateString();
+      node.querySelector("[data-bot]").textContent = u.bot ? "Yes" : "No";
+
+      node.querySelector("[data-guilds]").innerHTML = u.mutualGuilds?.length
+        ? u.mutualGuilds
+            .slice(0, 2)
+            .map(
+              (g) =>
+                `<span><img style="display:inline-block;aspect-ratio:1/1;height:1em;border-radius:25%;" src="${g.icon ?? "./fallback-guild.png"}" /> ${g.name}</span>`,
+            )
+            .join("<br>")
+        : "No Mutual Guilds";
+
+      node.querySelector("[data-flags]").textContent = u.flags?.length
+        ? u.flags.join(", ")
+        : "-";
+
+      content.innerHTML = "";
+      content.appendChild(node);
+    });
+}
+
+window.addEventListener("popstate", () => {
+  const q = new URLSearchParams(location.search);
+
+  if (q.get("tab") === "manage-guild") {
+    const g = BotGuilds?.find((x) => x.id === q.get("id"));
+    if (g) return openGuild(g, false);
+  }
+
+  if (q.get("tab") === "view-user") {
+    return openUserPanel(q.get("id"), false);
+  }
+
+  loadPanel();
+});
+
+document.getElementById("guild-back-btn")?.addEventListener("click", loadPanel);
+document.getElementById("user-back-btn")?.addEventListener("click", loadPanel);
+
+window.onload = async () => {
+  const pw = localStorage.getItem("panelAuth");
+  if (!pw || !(await validatePassword(pw))) {
+    showPanel("login");
+    return;
+  }
+
+  const q = new URLSearchParams(location.search);
+
+  if (q.get("tab") === "manage-guild") {
+    await loadGuilds();
+    const g = BotGuilds?.find((x) => x.id === q.get("id"));
+    if (g) return openGuild(g, false);
+  }
+
+  if (q.get("tab") === "view-user") {
+    return openUserPanel(q.get("id"), false);
+  }
+
+  loadPanel();
 };
+
+(() => {
+  const btn = document.getElementById("floating-btn");
+  const menu = document.getElementById("floating-menu");
+
+  if (!btn || !menu) return;
+
+  btn.onclick = () => {
+    const open = !menu.classList.contains("hidden");
+
+    if (open) {
+      menu.classList.add("opacity-0", "scale-95");
+      setTimeout(() => menu.classList.add("hidden"), 150);
+    } else {
+      menu.classList.remove("hidden");
+      requestAnimationFrame(() => {
+        menu.classList.remove("opacity-0", "scale-95");
+      });
+    }
+  };
+
+  menu.querySelectorAll("[data-link]").forEach((el) => {
+    el.onclick = () => {
+      location.href = el.dataset.link;
+    };
+  });
+})();

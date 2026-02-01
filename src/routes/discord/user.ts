@@ -1,22 +1,77 @@
 import { createAPIRoute } from "../../apiRoute";
 
 export default createAPIRoute({
-  path: "/user/:id",
-  methods: ["get"],
-  description:
-    "Fetches a user's public Discord profile and optionally returns more detailed information.",
+  meta: {
+    path: "/user/:userId",
+    method: "get",
 
-  query: {
-    fetch: "Force refetch from API instead of cache (true/false)",
-    mutualGuilds:
-      "Include list of guild IDs the bot shares with the user (true/false)",
-    raw: "Include raw Discord.js user object (true/false)",
+    summary: "Fetch Discord user profile",
+    description:
+      "Fetches a user's public Discord profile and can optionally include mutual guilds or the raw Discord.js user object.",
+    category: "discord",
+    tags: ["discord", "user"],
+
+    params: {
+      userId: {
+        type: "string",
+        required: true,
+        description: "Discord user ID",
+        example: "123456789012345678",
+      },
+    },
+
+    query: {
+      fetch: {
+        type: "boolean",
+        required: false,
+        description: "Force refetch from Discord API instead of cache",
+        example: true,
+      },
+      mutualGuilds: {
+        type: "boolean",
+        required: false,
+        description:
+          "Include guilds the bot and user share (requires member cache)",
+        example: true,
+      },
+      raw: {
+        type: "boolean",
+        required: false,
+        description: "Include raw Discord.js User object",
+        example: false,
+      },
+    },
+
+    exampleData: [
+      {
+        method: "get",
+        url: "/api/user/123456789012345678?mutualGuilds=true",
+        response: {
+          id: "123456789012345678",
+          username: "SomeUser",
+          displayName: "SomeUser",
+          tag: "SomeUser#0001",
+          bot: false,
+          globalName: "Some User",
+          flags: ["EarlySupporter"],
+          avatar: "https://cdn.discordapp.com/...",
+          banner: null,
+          createdTimestamp: 1600000000000,
+          accentColor: 16711680,
+          mutualGuilds: [
+            {
+              id: "987654321098765432",
+              name: "Example Server",
+              nickname: "Nick",
+            },
+          ],
+        },
+      },
+    ],
   },
 
-  body: {},
-
   async callback(ctx) {
-    const id = ctx.req.params.id;
+    const id = ctx.req.params.userId;
 
     const q = ctx.req.query;
     const fetchFresh = q.fetch === "true";
@@ -26,8 +81,8 @@ export default createAPIRoute({
     // Fetch user
     const user = await ctx.client.users.fetch(id, { cache: !fetchFresh });
 
-    // Base user object
-    let userJSON: any = {
+    // Base user JSON
+    const userJSON: any = {
       id: user.id,
       username: user.username,
       displayName: user.displayName,
@@ -44,14 +99,19 @@ export default createAPIRoute({
       accentColor: user.accentColor,
     };
 
-    // Optional: mutual guilds
+    // Mutual guilds
     if (includeMutual) {
       userJSON.mutualGuilds = ctx.client.guilds.cache
         .filter((g) => g.members.cache.has(id))
-        .map((g) => g.id);
+        .map((g) => ({
+          id: g.id,
+          name: g.name,
+          nickname: g.members.cache.get(id)?.nickname ?? null,
+          icon: g.iconURL({ size: 1024 }),
+        }));
     }
 
-    // Optional: raw Discord.js fields
+    // Raw Discord.js object
     if (includeRaw) {
       userJSON.raw = user;
     }

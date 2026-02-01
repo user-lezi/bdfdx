@@ -17,6 +17,9 @@ export async function createApp(
   app.get("/", (req, res) => {
     res.sendFile("panel/index.html");
   });
+  app.get("/api-playground", (req, res) => {
+    res.sendFile(process.cwd() + "/panel/api-playground.html");
+  });
 
   // Password Checker
   app.get("/password", (req, res) => {
@@ -52,14 +55,6 @@ export async function createApp(
     const route: ReturnType<typeof createAPIRoute> = mod.default || mod;
 
     route.execute(app, client);
-
-    console.log(
-      chalk.gray("[") +
-        chalk.magenta("API") +
-        chalk.gray("] ") +
-        chalk.yellow("Loaded route file: ") +
-        chalk.cyan(file.replace(__dirname, "")),
-    );
   }
 
   app.listen(config.port, () => {

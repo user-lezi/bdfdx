@@ -2,17 +2,53 @@
 Object.defineProperty(exports, "__esModule", { value: true });
 const apiRoute_1 = require("../../../apiRoute");
 exports.default = (0, apiRoute_1.createAPIRoute)({
-    path: "/guilds",
-    methods: ["get"],
-    description: "Returns a list of guilds the bot is in.",
-    query: {
-        sort: "`id`, `joined`, `membercount`, or `name`. Default: none.",
+    meta: {
+        path: "/guilds",
+        method: "get",
+        summary: "List bot guilds",
+        description: "Returns a list of guilds the bot is currently in.",
+        category: "discord",
+        tags: ["discord", "bot", "guild"],
+        query: {
+            sort: {
+                type: "enum",
+                description: "Sort the returned guild list.",
+                required: false,
+                enum: {
+                    id: "Sort by guild ID",
+                    name: "Sort alphabetically by guild name",
+                    membercount: "Sort by member count (descending)",
+                    joined: "Sort by join timestamp",
+                },
+                example: "membercount",
+            },
+        },
+        exampleData: [
+            {
+                method: "get",
+                url: "/api/guilds?sort=membercount",
+                response: [
+                    {
+                        id: "123456789012345678",
+                        name: "My Server",
+                        owner: "987654321098765432",
+                        icon: "https://cdn.discordapp.com/icons/…",
+                    },
+                    {
+                        id: "234567890123456789",
+                        name: "Another Server",
+                        owner: "876543210987654321",
+                        icon: null,
+                    },
+                ],
+            },
+        ],
     },
     async callback(ctx) {
         const sort = ctx.req.query.sort;
-        // Fetch all guilds (cached list)
+        // Cached guilds
         let guilds = Array.from(ctx.client.guilds.cache.values());
-        // Sorting logic
+        // Sorting
         if (sort === "id") {
             guilds.sort((a, b) => Number(BigInt(a.id) - BigInt(b.id)));
         }

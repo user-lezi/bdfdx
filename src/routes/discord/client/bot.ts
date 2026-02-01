@@ -1,13 +1,48 @@
-import { createAPIRoute } from "../../apiRoute";
+import { createAPIRoute } from "../../../apiRoute";
 import os from "os";
 
 export default createAPIRoute({
-  path: "/bot",
-  methods: ["get"],
+  meta: {
+    path: "/bot",
+    method: "get",
 
-  description: "Returns all the information about the bot.",
-  query: {},
-  body: {},
+    summary: "Fetch bot information",
+    description:
+      "Returns public bot identity, application metadata, runtime statistics, and environment information.",
+    category: "discord",
+    tags: ["discord", "bot", "utility"],
+
+    exampleData: [
+      {
+        method: "get",
+        url: "/api/bot",
+        response: {
+          user: {
+            id: "123456789012345678",
+            username: "MyBot",
+            displayName: "MyBot",
+            tag: "MyBot#0000",
+          },
+          application: {
+            id: "123456789012345678",
+            name: "My Bot",
+            public: true,
+          },
+          stats: {
+            guilds: 42,
+            users: 12345,
+            uptime: 123456789,
+            ping: 42,
+          },
+          runtime: {
+            nodeVersion: "v20.x",
+            platform: "linux",
+            arch: "x64",
+          },
+        },
+      },
+    ],
+  },
 
   async callback(ctx) {
     const client = ctx.client;

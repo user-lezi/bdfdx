@@ -15,6 +15,9 @@ async function createApp(client, config) {
     app.get("/", (req, res) => {
         res.sendFile("panel/index.html");
     });
+    app.get("/api-playground", (req, res) => {
+        res.sendFile(process.cwd() + "/panel/api-playground.html");
+    });
     // Password Checker
     app.get("/password", (req, res) => {
         const headerPass = req.headers.password;
@@ -41,11 +44,6 @@ async function createApp(client, config) {
         const mod = require(file);
         const route = mod.default || mod;
         route.execute(app, client);
-        console.log(chalk_1.default.gray("[") +
-            chalk_1.default.magenta("API") +
-            chalk_1.default.gray("] ") +
-            chalk_1.default.yellow("Loaded route file: ") +
-            chalk_1.default.cyan(file.replace(__dirname, "")));
     }
     app.listen(config.port, () => {
         const bootTime = performance.now() - start;

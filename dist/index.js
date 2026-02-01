@@ -7,6 +7,7 @@ const chalk_1 = __importDefault(require("chalk"));
 const discord_js_1 = require("discord.js");
 const config_1 = require("./config");
 const app_1 = require("./app");
+const bdfdMetadata_1 = require("./bdfdMetadata");
 // Create a client instance
 const client = new discord_js_1.Client({
     intents: ["Guilds", "GuildMembers", "GuildBans"],
@@ -28,7 +29,12 @@ client.once("clientReady", () => {
         client.application.fetch();
         client.application.commands.fetch();
     }
-    fetchStuff();
+    function fetchOnce() {
+        fetchStuff();
+        // Fetch the BDFD data
+        bdfdMetadata_1.BDFDMetadata.fetchFunctions();
+    }
+    fetchOnce();
     setInterval(fetchStuff, 600000);
     (0, app_1.createApp)(client, config_1.CONFIG);
 });

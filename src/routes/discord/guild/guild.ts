@@ -2,20 +2,77 @@ import { Guild } from "discord.js";
 import { createAPIRoute } from "../../../apiRoute";
 
 export default createAPIRoute({
-  path: "/guild/:id",
-  methods: ["get"],
-  description:
-    "Fetches a guild's public information and optionally returns more detailed metadata.",
+  meta: {
+    path: "/guild/:guildId",
+    method: "get",
 
-  query: {
-    fetch: "Force refetch from API instead of cache (true/false)",
-    raw: "Include raw Discord.js guild object (true/false)",
+    summary: "Get guild info",
+    description: "Fetches a guild's public information",
+    category: "discord",
+    tags: ["discord", "bot", "guild"],
+
+    params: {
+      guildId: {
+        type: "string",
+        description: "The ID of the guild",
+        required: true,
+        example: "123456789012345678",
+      },
+    },
+
+    query: {
+      fetch: {
+        type: "boolean",
+        description: "Force refetch from API instead of cache",
+        required: false,
+        example: false,
+      },
+      raw: {
+        type: "boolean",
+        description: "Include raw Discord.js guild object",
+        required: false,
+        example: false,
+      },
+    },
+
+    exampleData: [
+      {
+        method: "get",
+        url: "/api/guild/123456789012345678?fetch=true",
+        response: {
+          id: "123456789012345678",
+          name: "My Server",
+          description: "A test server",
+          owner: {
+            id: "987654321098765432",
+            username: "OwnerUser",
+            name: "OwnerDisplay",
+            icon: "https://cdn.discordapp.com/avatars/…",
+          },
+          dates: {
+            created: 1680000000000,
+            joined: 1685000000000,
+          },
+          nsfwLevel: 0,
+          features: ["ANIMATED_ICON", "BANNER"],
+          nameAcronym: "MS",
+          icon: "https://cdn.discordapp.com/icons/…",
+          banner: "https://cdn.discordapp.com/banners/…",
+          locale: "en-US",
+          vanityURL: null,
+          count: {
+            members: 150,
+            channels: 20,
+            roles: 10,
+            emojis: 50,
+          },
+        },
+      },
+    ],
   },
 
-  body: {},
-
   async callback(ctx) {
-    const id = ctx.req.params.id;
+    const id = ctx.req.params.guildId;
     const q = ctx.req.query;
 
     const fetchFresh = q.fetch === "true";
@@ -25,7 +82,7 @@ export default createAPIRoute({
     let guild: Guild;
     try {
       guild = ctx.client.guilds.cache.get(id)!;
-      if (fetchFresh) guild = await guild?.fetch();
+      if (fetchFresh) guild = await guild.fetch();
       if (!guild) throw Error();
     } catch {
       return ctx.res.status(404).json({
@@ -34,13 +91,25 @@ export default createAPIRoute({
       });
     }
 
-    // Base guild JSON
+    const owner = await guild.fetchOwner({ cache: true });
+
     const guildJSON: any = {
       id: guild.id,
       name: guild.name,
       description: guild.description ?? null,
-      ownerId: guild.ownerId,
-      createdTimestamp: guild.createdTimestamp,
+
+      owner: {
+        id: owner.id,
+        username: owner.user.username,
+        name: owner.user.displayName,
+        icon: owner.user.displayAvatarURL({ size: 1024 }),
+      },
+
+      dates: {
+        created: guild.createdTimestamp,
+        joined: guild.joinedTimestamp,
+      },
+
       nsfwLevel: guild.nsfwLevel,
       features: guild.features,
 
@@ -59,10 +128,7 @@ export default createAPIRoute({
       },
     };
 
-    // Optional: raw (entire guild object)
-    if (includeRaw) {
-      guildJSON.raw = guild;
-    }
+    if (includeRaw) guildJSON.raw = guild;
 
     ctx.res.json(guildJSON);
   },

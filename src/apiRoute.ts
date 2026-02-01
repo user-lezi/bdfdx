@@ -1,62 +1,119 @@
 import chalk from "chalk";
 import { Client } from "discord.js";
 import { NextFunction, Request, Response, Express } from "express";
+import { Database, db } from "./database";
 
 export type Method = "get" | "post" | "put" | "delete";
 
-export function createAPIRoute(data: {
+export type Tags =
+  /** ⚠️ Dangerous or privileged endpoints (e.g. eval, exec, raw access) */
+  | "unsafe"
+
+  /** Discord API–related operations */
+  | "discord"
+
+  /** Bot-level data and actions (uptime, stats, presence, config) */
+  | "bot"
+
+  /** Guild/server-related endpoints */
+  | "guild"
+
+  /** Message-related operations */
+  | "message"
+
+  /** Message reactions */
+  | "reaction"
+
+  /** Guild member / moderation-related endpoints */
+  | "member"
+
+  /** User-related endpoints (Discord users, profiles, lookups) */
+  | "user"
+
+  /** Generic utility endpoints (health, ping, helpers, misc) */
+  | "utility"
+
+  /** Mutative endpoints that perform an action (leave guild, ban, restart) */
+  | "action"
+
+  /** Database */
+  | "db"
+
+  /** Does internal stuff */
+  | "internal"
+
+  /** BDFD-related endpoints */
+  | "bdfd"
+
+  /** Image-related endpoints */
+  | "image";
+
+export type Field = {
+  type: "any" | "string" | "number" | "boolean" | "array" | "object" | "enum";
+  description?: string;
+  required?: boolean;
+  example?: unknown;
+  enum?: { [key: string]: string };
+};
+
+export type RouteMeta<B extends Record<string, Field>> = {
   path: string;
-  methods: Method[];
-  description: string;
-  query?: Record<string, string>;
-  body?: Record<string, string>;
+  method: Method;
+  summary: string;
+  category: "discord" | "database" | "utility" | "bdfd";
+  description?: string;
+
+  params?: Record<string, Field>;
+  query?: Record<string, Field>;
+  body?: B;
+
+  tags?: Tags[];
+
+  exampleData?: {
+    url: string;
+    method: Method;
+    body?: Partial<Record<keyof B, unknown>>;
+    response?: unknown;
+  }[];
+};
+
+export function createAPIRoute<B extends Record<string, Field>>(data: {
+  meta: RouteMeta<B>;
   callback: (ctx: {
     client: Client<true>;
     res: Response;
     req: Request;
     next: NextFunction;
+    db: Database;
   }) => unknown;
 }) {
-  // Ensure path starts with '/'
-  if (!data.path.startsWith("/")) data.path = "/" + data.path;
+  if (!data.meta.path.startsWith("/")) data.meta.path = "/" + data.meta.path;
 
-  // Prefix with /api (docgen expects the raw path but runtime needs prefixed)
-  const runtimePath = "/api" + data.path;
+  const runtimePath = "/api" + data.meta.path;
 
-  // Validate methods
-  if (!Array.isArray(data.methods) || data.methods.length === 0) {
-    throw new Error(
-      `Route ${data.path} must contain at least one HTTP method.`,
-    );
+  if (!data.meta.method.length) {
+    throw new Error(`Route ${data.meta.path} must define a method`);
   }
 
   return {
-    // 🔥 important → expose EXACT raw metadata for docgen
-    data,
+    meta: data.meta, // 🔥 exposed for docgen
 
     execute(app: Express, client: Client<true>) {
-      for (const method of data.methods) {
-        if (typeof (app as any)[method] !== "function") {
-          console.log(
-            chalk.red(
-              `⚠ Invalid method "${method}" in route ${data.path} (skipped)`,
-            ),
-          );
-          continue;
-        }
-
-        (app as any)[method](
-          runtimePath,
-          (req: Request, res: Response, next: NextFunction) =>
-            data.callback({ client, req, res, next }),
-        );
-
+      const method = data.meta.method;
+      if (typeof (app as any)[method] !== "function") {
         console.log(
-          chalk.green(
-            `\t✔ Route Loaded → ${chalk.yellow(`[${method.toUpperCase()}]`)} ${runtimePath}`,
-          ),
+          chalk.red(`⚠ Invalid method "${method}" in route ${data.meta.path}`),
         );
+        return;
       }
+
+      (app as any)[method](
+        runtimePath,
+        (req: Request, res: Response, next: NextFunction) =>
+          data.callback({ client, req, res, next, db: db }),
+      );
+
+      console.log(chalk.green(`✔ [${method.toUpperCase()}] ${runtimePath}`));
     },
   };
 }
