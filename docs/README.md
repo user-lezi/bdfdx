@@ -7,6 +7,7 @@
 - [POST /channel/:channelId/messages](./discord/post_channel__channelId_messages.md)
 - [GET /bot](./discord/get_bot.md)
 - [GET /commands](./discord/get_commands.md)
+- [POST /bot/update](./discord/post_bot_update.md)
 - [GET /guild/:guildId](./discord/get_guild__guildId.md)
 - [GET /guilds](./discord/get_guilds.md)
 - [DELETE /guild/:guildId](./discord/delete_guild__guildId.md)
