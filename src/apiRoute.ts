@@ -1,6 +1,7 @@
 import chalk from "chalk";
 import { Client } from "discord.js";
 import { NextFunction, Request, Response, Express } from "express";
+import { Database, db } from "./database";
 
 export type Method = "get" | "post" | "put" | "delete";
 
@@ -35,6 +36,9 @@ export type Tags =
   /** Mutative endpoints that perform an action (leave guild, ban, restart) */
   | "action"
 
+  /** Database */
+  | "db"
+
   /** Does internal stuff */
   | "internal"
 
@@ -45,7 +49,7 @@ export type Tags =
   | "image";
 
 export type Field = {
-  type: "string" | "number" | "boolean" | "array" | "object" | "enum";
+  type: "any" | "string" | "number" | "boolean" | "array" | "object" | "enum";
   description?: string;
   required?: boolean;
   example?: unknown;
@@ -56,7 +60,7 @@ export type RouteMeta<B extends Record<string, Field>> = {
   path: string;
   method: Method;
   summary: string;
-  category: "discord" | "utility" | "bdfd";
+  category: "discord" | "database" | "utility" | "bdfd";
   description?: string;
 
   params?: Record<string, Field>;
@@ -80,6 +84,7 @@ export function createAPIRoute<B extends Record<string, Field>>(data: {
     res: Response;
     req: Request;
     next: NextFunction;
+    db: Database;
   }) => unknown;
 }) {
   if (!data.meta.path.startsWith("/")) data.meta.path = "/" + data.meta.path;
@@ -105,7 +110,7 @@ export function createAPIRoute<B extends Record<string, Field>>(data: {
       (app as any)[method](
         runtimePath,
         (req: Request, res: Response, next: NextFunction) =>
-          data.callback({ client, req, res, next }),
+          data.callback({ client, req, res, next, db: db }),
       );
 
       console.log(chalk.green(`✔ [${method.toUpperCase()}] ${runtimePath}`));

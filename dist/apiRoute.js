@@ -5,6 +5,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.createAPIRoute = createAPIRoute;
 const chalk_1 = __importDefault(require("chalk"));
+const database_1 = require("./database");
 function createAPIRoute(data) {
     if (!data.meta.path.startsWith("/"))
         data.meta.path = "/" + data.meta.path;
@@ -20,7 +21,7 @@ function createAPIRoute(data) {
                 console.log(chalk_1.default.red(`⚠ Invalid method "${method}" in route ${data.meta.path}`));
                 return;
             }
-            app[method](runtimePath, (req, res, next) => data.callback({ client, req, res, next }));
+            app[method](runtimePath, (req, res, next) => data.callback({ client, req, res, next, db: database_1.db }));
             console.log(chalk_1.default.green(`✔ [${method.toUpperCase()}] ${runtimePath}`));
         },
     };
