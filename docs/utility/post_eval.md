@@ -4,8 +4,8 @@
 
 Executes arbitrary JavaScript code in an async context and returns the result along with captured console output.
 
-**🏷 Tags:** unsafe, utility, action
-**📁 Source:** `\dist\routes\misc\eval.js`
+**🏷 Tags:** unsafe, utility, internal, action
+**📁 Source:** `\dist\routes\misc\internals\eval.js`
 
 ### 📦 Body Parameters
 | Name | Type | Required | Description | Example |

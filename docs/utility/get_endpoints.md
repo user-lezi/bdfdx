@@ -4,8 +4,8 @@
 
 Returns a machine-readable list of all available API endpoints along with their metadata. Primarily used for documentation generation, API explorers, and internal tooling.
 
-**🏷 Tags:** utility
-**📁 Source:** `\dist\routes\misc\endpoints.js`
+**🏷 Tags:** utility, internal
+**📁 Source:** `\dist\routes\misc\internals\endpoints.js`
 
 ### 🧪 Example 1
 ```http

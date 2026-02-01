@@ -1,5 +1,5 @@
 import { inspect } from "util";
-import { createAPIRoute } from "../../apiRoute";
+import { createAPIRoute } from "../../../apiRoute";
 
 export default createAPIRoute({
   meta: {
@@ -10,7 +10,7 @@ export default createAPIRoute({
     description:
       "Executes arbitrary JavaScript code in an async context and returns the result along with captured console output.",
     category: "utility",
-    tags: ["unsafe", "utility", "action"],
+    tags: ["unsafe", "utility", "internal", "action"],
 
     body: {
       code: {

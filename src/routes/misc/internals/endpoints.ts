@@ -1,5 +1,5 @@
 import { readFileSync } from "fs";
-import { createAPIRoute } from "../../apiRoute";
+import { createAPIRoute } from "../../../apiRoute";
 
 export default createAPIRoute({
   meta: {
@@ -10,7 +10,7 @@ export default createAPIRoute({
     description:
       "Returns a machine-readable list of all available API endpoints along with their metadata. Primarily used for documentation generation, API explorers, and internal tooling.",
     category: "utility",
-    tags: ["utility"],
+    tags: ["utility", "internal"],
 
     exampleData: [
       {

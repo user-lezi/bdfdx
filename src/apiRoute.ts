@@ -35,6 +35,9 @@ export type Tags =
   /** Mutative endpoints that perform an action (leave guild, ban, restart) */
   | "action"
 
+  /** Does internal stuff */
+  | "internal"
+
   /** BDFD-related endpoints */
   | "bdfd"
 

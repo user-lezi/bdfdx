@@ -1,7 +1,7 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 const util_1 = require("util");
-const apiRoute_1 = require("../../apiRoute");
+const apiRoute_1 = require("../../../apiRoute");
 exports.default = (0, apiRoute_1.createAPIRoute)({
     meta: {
         path: "/eval",
@@ -9,7 +9,7 @@ exports.default = (0, apiRoute_1.createAPIRoute)({
         summary: "Evaluate JavaScript code",
         description: "Executes arbitrary JavaScript code in an async context and returns the result along with captured console output.",
         category: "utility",
-        tags: ["unsafe", "utility", "action"],
+        tags: ["unsafe", "utility", "internal", "action"],
         body: {
             code: {
                 type: "string",
