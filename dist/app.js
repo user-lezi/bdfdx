@@ -18,6 +18,7 @@ async function createApp(client, config) {
     app.get("/api-playground", (req, res) => {
         res.sendFile(process.cwd() + "/panel/api-playground.html");
     });
+    app.get("/invite", (req, res) => res.redirect(`https://discord.com/oauth2/authorize?client_id=${client.user.id}`));
     // Password Checker
     app.get("/password", (req, res) => {
         const headerPass = req.headers.password;
@@ -45,6 +46,9 @@ async function createApp(client, config) {
         const route = mod.default || mod;
         route.execute(app, client);
     }
+    // 404 Page
+    app.all("/404", (req, res) => res.status(404).sendFile(process.cwd() + "/panel/404.html"));
+    app.use((req, res) => res.redirect("/404"));
     app.listen(config.port, () => {
         const bootTime = performance.now() - start;
         console.log(chalk_1.default.blueBright("✔ API Server Started"));

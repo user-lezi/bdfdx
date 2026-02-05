@@ -1,0 +1,195 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <title>Not Found: 404</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+
+    <link rel="stylesheet" href="style.css" />
+
+    <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
+  </head>
+
+  <body
+    class="min-h-screen flex items-center justify-center bg-zinc-950 text-white p-6"
+  >
+    <main class="max-w-xl w-full space-y-6">
+      <!-- 404 Card -->
+      <div
+        class="rounded-3xl border border-white/10 bg-white/5 backdrop-blur-xl p-8 shadow-xl"
+      >
+        <div class="text-center space-y-3">
+          <h1 class="text-6xl font-bold">404</h1>
+
+          <p class="text-white/60 text-lg">This page does not exist.</p>
+
+          <p class="text-white/40 text-sm">
+            Made with
+            <span class="text-indigo-400 font-medium">bdfdx</span>
+            (<a
+              class="underline hover:text-indigo-300"
+              href="https://github.com/user-lezi/bdfdx"
+              target="_blank"
+              >github:user-lezi/bdfdx</a
+            >)
+          </p>
+        </div>
+
+        <!-- Buttons -->
+        <div class="grid grid-cols-3 gap-3 pt-5">
+          <a
+            href="/"
+            class="text-center rounded-xl bg-indigo-500 hover:bg-indigo-400 transition font-medium py-2"
+          >
+            Panel
+          </a>
+
+          <a
+            href="https://github.com/user-lezi/bdfdx"
+            target="_blank"
+            class="text-center rounded-xl bg-white/10 hover:bg-white/20 transition py-2"
+          >
+            GitHub
+          </a>
+
+          <a
+            href="/invite"
+            class="text-center rounded-xl bg-white/10 hover:bg-white/20 transition py-2"
+          >
+            Bot Invite
+          </a>
+        </div>
+      </div>
+
+      <!-- Repo Info -->
+      <div
+        id="repo-info"
+        class="hidden rounded-3xl border border-white/10 bg-white/5 backdrop-blur-xl p-6 shadow-lg space-y-6"
+      >
+        <h2 class="text-lg font-semibold">Repository Info</h2>
+
+        <!-- Stats -->
+        <div class="grid grid-cols-3 gap-4 text-center">
+          <div>
+            <div id="stars" class="text-xl font-semibold">-</div>
+            <div class="text-xs text-white/50">Stars</div>
+          </div>
+
+          <div>
+            <div id="contributors-count" class="text-xl font-semibold">-</div>
+            <div class="text-xs text-white/50">Contributors</div>
+          </div>
+
+          <div>
+            <div id="commit" class="text-sm font-mono">-</div>
+            <div class="text-xs text-white/50">Latest Commit</div>
+          </div>
+        </div>
+
+        <!-- Stargazers -->
+        <div>
+          <h3 class="text-sm text-white/70 mb-2">Stargazers</h3>
+          <div id="star-avatars" class="flex flex-wrap gap-2"></div>
+        </div>
+
+        <!-- Contributors -->
+        <div>
+          <h3 class="text-sm text-white/70 mb-2">Contributors</h3>
+          <div id="contrib-avatars" class="flex flex-wrap gap-2"></div>
+        </div>
+      </div>
+    </main>
+
+    <script>
+      async function loadRepoInfo() {
+        try {
+          const [repo, commits, contributors, stars] = await Promise.all([
+            fetchJSON("https://api.github.com/repos/user-lezi/bdfdx"),
+
+            fetchJSON(
+              "https://api.github.com/repos/user-lezi/bdfdx/commits?per_page=1",
+            ),
+
+            fetchJSON(
+              "https://api.github.com/repos/user-lezi/bdfdx/contributors?per_page=30",
+            ),
+
+            fetchJSON(
+              "https://api.github.com/repos/user-lezi/bdfdx/stargazers?per_page=30",
+              { Accept: "application/vnd.github+json" },
+            ),
+          ]);
+
+          animateCount("stars", repo.stargazers_count);
+          animateCount("contributors-count", contributors.length);
+
+          document.getElementById("commit").textContent =
+            commits[0].sha.substring(0, 7);
+
+          renderAvatarsAnimated("star-avatars", stars);
+          renderAvatarsAnimated("contrib-avatars", contributors);
+
+          document.getElementById("repo-info").classList.remove("hidden");
+        } catch {
+          document.getElementById("repo-info").remove();
+        }
+      }
+
+      async function fetchJSON(url, extraHeaders = {}) {
+        const res = await fetch(url, { headers: extraHeaders });
+        if (!res.ok) throw new Error();
+        return res.json();
+      }
+
+      function animateCount(id, target) {
+        const el = document.getElementById(id);
+        let start = 0;
+        const duration = 900;
+        const startTime = performance.now();
+
+        function frame(now) {
+          const progress = Math.min((now - startTime) / duration, 1);
+
+          // easeOutCubic
+          const eased = 1 - Math.pow(1 - progress, 3);
+
+          el.textContent = Math.floor(eased * target);
+
+          if (progress < 1) requestAnimationFrame(frame);
+        }
+
+        requestAnimationFrame(frame);
+      }
+
+      function renderAvatarsAnimated(containerId, users) {
+        const container = document.getElementById(containerId);
+        container.innerHTML = "";
+
+        users.forEach((user, index) => {
+          const a = document.createElement("a");
+          a.href = user.html_url;
+          a.target = "_blank";
+
+          a.className = "opacity-0 scale-50 transition duration-300";
+
+          a.innerHTML = `
+      <img
+        src="${user.avatar_url}"
+        title="${user.login}"
+        class="w-8 h-8 rounded-full border border-white/10 hover:scale-110 transition"
+      />
+    `;
+
+          container.appendChild(a);
+
+          setTimeout(() => {
+            a.classList.remove("opacity-0", "scale-50");
+            a.classList.add("opacity-100", "scale-100");
+          }, index * 60);
+        });
+      }
+
+      loadRepoInfo();
+    </script>
+  </body>
+</html>
