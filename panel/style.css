@@ -2,6 +2,16 @@
   --accent-rgb: 88, 101, 242;
 }
 
+::selection {
+  background: rgba(var(--accent-rgb), 0.35);
+  color: inherit;
+}
+
+::-moz-selection {
+  background: rgba(var(--accent-rgb), 0.35);
+  color: inherit;
+}
+
 body {
   background: #000;
 }
