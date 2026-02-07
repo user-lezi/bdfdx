@@ -83,6 +83,7 @@ function setAccentColor(color, duration = 1200) {
       accentAnimationFrame = requestAnimationFrame(animate);
     } else {
       CurrentAccentColor = `rgb(${end.join(",")})`;
+      localStorage.setItem("accent", CurrentAccentColor);
       console.log("[accent]", ...end);
     }
   }
@@ -410,6 +411,9 @@ document.getElementById("guild-back-btn")?.addEventListener("click", loadPanel);
 document.getElementById("user-back-btn")?.addEventListener("click", loadPanel);
 
 window.onload = async () => {
+  let accent = localStorage.getItem("accent");
+  if (accent) setAccentColor(accent, 800);
+
   const pw = localStorage.getItem("panelAuth");
   if (!pw || !(await validatePassword(pw))) {
     showPanel("login");

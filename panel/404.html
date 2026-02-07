@@ -25,9 +25,11 @@
 
           <p class="text-white/40 text-sm">
             Made with
-            <span class="text-indigo-400 font-medium">bdfdx</span>
+            <span class="text-[rgb(var(--accent-rgb))]/95 font-medium"
+              >bdfdx</span
+            >
             (<a
-              class="underline hover:text-indigo-300"
+              class="underline hover:text-[rgb(var(--accent-rgb))]"
               href="https://github.com/user-lezi/bdfdx"
               target="_blank"
               >github:user-lezi/bdfdx</a
@@ -39,7 +41,7 @@
         <div class="grid grid-cols-3 gap-3 pt-5">
           <a
             href="/"
-            class="text-center rounded-xl bg-indigo-500 hover:bg-indigo-400 transition font-medium py-2"
+            class="text-center rounded-xl bg-[rgb(var(--accent-rgb))]/90 hover:bg-[rgb(var(--accent-rgb))] transition font-medium py-2"
           >
             Panel
           </a>
@@ -101,6 +103,54 @@
     </main>
 
     <script>
+      let CurrentAccentColor;
+      let accentAnimationFrame = null;
+      function parseRGB(color) {
+        return color.match(/\d+/g).map(Number);
+      }
+      function setAccentColor(color, duration = 1200) {
+        if (color === CurrentAccentColor) return;
+
+        const start = parseRGB(CurrentAccentColor ?? `88, 101, 242`);
+        let end = parseRGB(color);
+
+        let [r, g, b] = end;
+        const lum = 0.2126 * r + 0.7152 * g + 0.0722 * b;
+
+        if (lum > 180) {
+          const k = 180 / lum;
+          end = [(r * k) | 0, (g * k) | 0, (b * k) | 0];
+        }
+
+        const startTime = performance.now();
+
+        if (accentAnimationFrame) cancelAnimationFrame(accentAnimationFrame);
+
+        function animate(now) {
+          const t = Math.min((now - startTime) / duration, 1);
+
+          const eased = 1 - Math.pow(1 - t, 3);
+
+          const current = start.map((s, i) =>
+            Math.round(s + (end[i] - s) * eased),
+          );
+
+          document.documentElement.style.setProperty(
+            "--accent-rgb",
+            current.join(", "),
+          );
+
+          if (t < 1) {
+            accentAnimationFrame = requestAnimationFrame(animate);
+          } else {
+            CurrentAccentColor = `rgb(${end.join(",")})`;
+            localStorage.setItem("accent", CurrentAccentColor);
+            console.log("[accent]", ...end);
+          }
+        }
+
+        accentAnimationFrame = requestAnimationFrame(animate);
+      }
       async function loadRepoInfo() {
         try {
           const [repo, commits, contributors, stars] = await Promise.all([
@@ -189,6 +239,8 @@
         });
       }
 
+      let accent = localStorage.getItem("accent");
+      if (accent) setAccentColor(accent, 800);
       loadRepoInfo();
     </script>
   </body>
