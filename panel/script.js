@@ -43,27 +43,51 @@ let AccentColorCache = {};
 let BotData;
 let BotGuilds;
 let currentPage = 1;
+let accentAnimationFrame = null;
 
-function setAccentColor(color) {
+function parseRGB(color) {
+  return color.match(/\d+/g).map(Number);
+}
+
+function setAccentColor(color, duration = 1200) {
   if (color === CurrentAccentColor) return;
-  CurrentAccentColor = color;
 
-  let [r, g, b] = color.match(/\d+/g).map(Number);
+  const start = parseRGB(CurrentAccentColor ?? `88, 101, 242`);
+  let end = parseRGB(color);
+
+  let [r, g, b] = end;
   const lum = 0.2126 * r + 0.7152 * g + 0.0722 * b;
 
   if (lum > 180) {
     const k = 180 / lum;
-    r = (r * k) | 0;
-    g = (g * k) | 0;
-    b = (b * k) | 0;
+    end = [(r * k) | 0, (g * k) | 0, (b * k) | 0];
   }
 
-  document.documentElement.style.setProperty(
-    "--accent-rgb",
-    `${r}, ${g}, ${b}`,
-  );
+  const startTime = performance.now();
 
-  console.log("[accent]", r, g, b);
+  if (accentAnimationFrame) cancelAnimationFrame(accentAnimationFrame);
+
+  function animate(now) {
+    const t = Math.min((now - startTime) / duration, 1);
+
+    const eased = 1 - Math.pow(1 - t, 3);
+
+    const current = start.map((s, i) => Math.round(s + (end[i] - s) * eased));
+
+    document.documentElement.style.setProperty(
+      "--accent-rgb",
+      current.join(", "),
+    );
+
+    if (t < 1) {
+      accentAnimationFrame = requestAnimationFrame(animate);
+    } else {
+      CurrentAccentColor = `rgb(${end.join(",")})`;
+      console.log("[accent]", ...end);
+    }
+  }
+
+  accentAnimationFrame = requestAnimationFrame(animate);
 }
 
 async function extractAccentColor(src, refresh = false) {

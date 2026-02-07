@@ -1,6 +1,5 @@
 :root {
   --accent-rgb: 88, 101, 242;
-  transition: var(--accent-rgb) 1.2s;
 }
 
 body {
